@@ -29,32 +29,38 @@
 
   <!-- ✅ MAIN CHAT AREA SCROLLABLE -->
   <main id="chatArea" class="pt-16 pb-24 px-4 space-y-4 overflow-y-auto max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-    <!-- Chat muncul di sini -->
+    <!-- Chat akan muncul di sini -->
   </main>
 
   <!-- ✅ FOOTER FIXED -->
   <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-50 p-3 flex items-center space-x-2 max-w-4xl mx-auto">
     
-    <!-- Tombol ➕ -->
+    <!-- Tombol ➕ dengan Menu Pilihan -->
     <div class="relative">
-      <button onclick="toggleUploadMenu()" class="text-2xl">➕</button>
-      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-lg hidden shadow-md z-50">
-        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          Ambil Foto
+      <button onclick="toggleUploadMenu()" class="text-white text-xl">➕</button>
+      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-xl hidden shadow-md z-50 w-48">
+        <label class="flex items-center gap-2 px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          📸 Ambil foto
           <input type="file" accept="image/*" capture="environment" onchange="handleImage(this.files[0])" class="hidden">
         </label>
-        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          Pilih dari Galeri
+        <label class="flex items-center gap-2 px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          🖼️ Tambah foto
           <input type="file" accept="image/*" onchange="handleImage(this.files[0])" class="hidden">
+        </label>
+        <label class="flex items-center gap-2 px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          📎 Tambah file
+          <input type="file" onchange="handleFile(this.files[0])" class="hidden">
         </label>
       </div>
     </div>
 
+    <!-- Input -->
     <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..."
       class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none"
       onkeydown="if(event.key==='Enter') kirimPesan()" />
 
-    <button class="text-2xl" onclick="kirimPesan()">Kirim pesan</button>
+    <!-- Tombol Kirim dengan Ikon Panah -->
+    <button class="text-white text-xl" onclick="kirimPesan()">⬆️</button>
   </footer>
 
   <!-- ✅ SCRIPT -->
@@ -125,14 +131,11 @@
     function toggleUploadMenu() {
       const menu = document.getElementById("uploadMenu");
       menu.classList.toggle("hidden");
-      document.addEventListener("click", closeMenuOutside, { once: true });
-    }
-
-    function closeMenuOutside(e) {
-      const menu = document.getElementById("uploadMenu");
-      if (!menu.contains(e.target)) {
-        menu.classList.add("hidden");
-      }
+      document.addEventListener("click", function closeOutside(e) {
+        if (!menu.contains(e.target)) {
+          menu.classList.add("hidden");
+        }
+      }, { once: true });
     }
 
     function handleImage(file) {
@@ -147,11 +150,10 @@
           imgDiv.innerHTML = `<img src="${imageUrl}" class="rounded-xl max-w-xs mb-2" alt="gambar kiriman">`;
           chatArea.appendChild(imgDiv);
 
-          // Bot respon gambar
           setTimeout(() => {
             const botReply = document.createElement("div");
             botReply.className = "bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto";
-            botReply.textContent = "Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽📷";
+            botReply.textContent = "📷 Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽";
             chatArea.appendChild(botReply);
             scrollToBottom();
           }, 700);
@@ -159,6 +161,17 @@
           scrollToBottom();
         };
         reader.readAsDataURL(file);
+      }
+    }
+
+    function handleFile(file) {
+      if (file) {
+        const chatArea = document.getElementById("chatArea");
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2 text-sm";
+        fileDiv.textContent = `📎 File "${file.name}" telah diunggah. (fitur analisis file belum aktif)`;
+        chatArea.appendChild(fileDiv);
+        scrollToBottom();
       }
     }
   </script>
