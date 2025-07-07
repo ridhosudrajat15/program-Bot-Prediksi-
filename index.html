@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bot Sepak Bola</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col">
+
+  <!-- Judul -->
+  <header class="sticky top-0 z-20 p-4 text-center bg-gray-800 shadow">
+    <h1 class="text-2xl font-bold text-yellow-400">⚽ Bot Analisis Pertandingan Sepak Bola</h1>
+    <p class="text-sm text-gray-300">Kirimkan pertanyaan seputar sepak bola</p>
+  </header>
+
+  <!-- Chat Area -->
+  <main id="chat" class="flex-1 overflow-y-auto relative">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-none z-0"></div>
+    <div id="chatMessages" class="relative z-10 space-y-4 px-4 py-2 flex flex-col"></div>
+  </main>
+
+  <!-- Form Chat -->
+  <form id="botForm" class="sticky bottom-0 z-20 p-4 bg-gray-800 flex gap-3">
+    <input type="text" id="question" placeholder="Tanya tentang bola..."
+      class="flex-1 p-3 rounded-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none" />
+
+    <button type="button" id="voiceBtn"
+      class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center text-white">🎤</button>
+
+    <div class="relative">
+      <button type="button" id="uploadBtn"
+        class="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-white">➕</button>
+      <div id="uploadMenu"
+        class="absolute bottom-12 right-0 bg-gray-800 border border-gray-600 rounded shadow-md hidden z-10">
+        <button type="button" id="cameraBtn"
+          class="block w-full text-left px-4 py-2 hover:bg-gray-700">📷 Kamera</button>
+        <button type="button" id="fileBtn"
+          class="block w-full text-left px-4 py-2 hover:bg-gray-700">📁 File</button>
+      </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" class="hidden" />
+    <video id="cameraPreview" class="hidden w-40 mt-2 rounded border border-gray-600" autoplay></video>
+    <canvas id="snapshotCanvas" class="hidden"></canvas>
+
+    <button type="submit"
+      class="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold py-2 px-4 rounded-full">Kirim</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("botForm");
+    const questionInput = document.getElementById("question");
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const uploadMenu = document.getElementById("uploadMenu");
+    const cameraBtn = document.getElementById("cameraBtn");
+    const fileBtn = document.getElementById("fileBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+    const chatMessages = document.getElementById("chatMessages");
+    const cameraPreview = document.getElementById("cameraPreview");
+    const snapshotCanvas = document.getElementById("snapshotCanvas");
+
+    const responses = [
+      { keywords: ["hai"], response: "Hallo! 👋 Ada yang bisa saya bantu untuk memprediksi pertandingan sepak bola?" },
+      { keywords: ["hallo"], response: "Hallo juga! Siap bantu analisis bola nih ⚽" },
+      { keywords: ["selamat", "pagi"], response: "Selamat pagi! Siap bantu prediksi hari ini ⚽" },
+      { keywords: ["selamat", "malam"], response: "Selamat malam! Ada yang ingin kamu tanyakan soal bola?" },
+      { keywords: ["terima", "kasih"], response: "Sama-sama! Senang bisa bantu kamu ⚽" },
+      { keywords: ["makasih"], response: "Sama-sama bro! ⚽" },
+      { keywords: ["prediksi"], response: "Yuk, kirim gambar pertandingan atau info timnya biar aku bantu prediksi! ⚽" },
+      { keywords: ["siapa", "yang", "menang"], response: "Kirim gambar atau nama timnya ya, aku bantu prediksi! 🔍" },
+      { keywords: ["jadwal", "pertandingan"], response: "Tanya saja 'jadwal Spanyol vs Jerman', nanti aku bantu carikan 🗕️" },
+      { keywords: ["top", "skor"], response: "Ketik nama liganya ya, aku bantu cek siapa pencetak gol terbanyak 🏍️" },
+      { keywords: ["klasemen"], response: "Ketik 'klasemen Liga Inggris', nanti aku bantu tampilkan 📊" },
+      { keywords: ["siapa", "kamu"], response: "Aku bot sepak bola 🤖 Aku bantu jawab dan prediksi seputar pertandingan ⚽" },
+      { keywords: ["kamu", "siapa"], response: "Aku bot sepak bola 🤖 Aku bantu jawab dan prediksi seputar pertandingan ⚽" },
+      { keywords: ["bisa", "apa"], response: "Aku bisa: 🎤 mendengar suara, 📸 analisa gambar, dan 🤖 prediksi pertandingan." },
+      { keywords: ["bye"], response: "Sampai jumpa! ⚽ Jangan lupa mampir lagi!" },
+      { keywords: ["sampai", "jumpa"], response: "Sampai jumpa, tetap semangat nonton bolanya bro! 👋" },
+      { keywords: ["nonton", "bola", "bareng"], response: "Wah seru tuh! Jangan lupa cemilan dan jersey tim kesayangan! 🎉" },
+      { keywords: ["kontol", "memek", "anjing", "babi"], response: "kamu sangat kasar!!!!!" },
+      { keywords: ["oke", "sip", "good job"], response: "okee, silahkan kirim data pertandingan nya" }
+    ];
+
+    function normalize(text) {
+      return text
+        .replace(/\bha+lo+\b/g, 'hallo')
+        .replace(/\bha+i+\b/g, 'hai')
+        .replace(/\bmakas(i+|y+|ih+|ee|eeh)\b/g, 'makasih')
+        .replace(/\b(t(h)?anks?|tq)\b/g, 'makasih')
+        .replace(/\bprediks(i+|y|sy|si+h*)\b/g, 'prediksi')
+        .replace(/\boke+[ey]*\b/g, 'oke')
+        .replace(/\bsipp*\b/g, 'sip')
+        .replace(/\bbye+(y+)?\b/g, 'bye')
+        .replace(/\b(nontonin|nntn)\b/g, 'nonton')
+        .replace(/\b(barengan|brg|brng)\b/g, 'bareng')
+        .replace(/\bgood ?job\b/g, 'good job')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function addMessage(sender, text) {
+      const div = document.createElement("div");
+      div.className = sender === "user"
+        ? "text-right ml-auto max-w-lg bg-yellow-500 text-black p-3 rounded-xl"
+        : "text-left mr-auto max-w-lg bg-gray-700 text-white p-3 rounded-xl";
+      div.innerHTML = text.replace(/\n/g, "<br>");
+      chatMessages.appendChild(div);
+      requestAnimationFrame(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      let text = questionInput.value.trim().toLowerCase();
+      const file = fileInput.files[0];
+
+      const normalizedText = normalize(text);
+      const tokens = normalizedText.split(/\s+/);
+
+      if (!text && !file) return;
+      if (text) addMessage("user", text);
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = `<img src="${reader.result}" class="w-48 rounded border mt-2" />`;
+          addMessage("user", "📁 Mengirim gambar..." + img);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      questionInput.value = "";
+      fileInput.value = "";
+
+      setTimeout(() => {
+        let matched = false;
+        for (let item of responses) {
+          if (item.keywords.some(k => tokens.includes(k))) {
+            addMessage("bot", item.response);
+            matched = true;
+            break;
+          }
+        }
+        if (!matched && file) {
+          addMessage("bot", "🤖 Bot sedang menganalisis gambar pertandingan...");
+        } else if (!matched) {
+          addMessage("bot", "🤖 Maaf, saya belum mengerti pertanyaanmu. Coba kirimkan gambar atau ketik sesuatu tentang sepak bola.");
+        }
+      }, 1200);
+    });
+
+    window.addEventListener("click", (e) => {
+      if (!uploadBtn.contains(e.target) && !uploadMenu.contains(e.target)) {
+        uploadMenu.classList.add("hidden");
+      }
+    });
+  </script>
+
+</body>
+</html>
