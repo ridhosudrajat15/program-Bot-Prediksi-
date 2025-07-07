@@ -13,6 +13,10 @@
       height: 100%;
       overflow: hidden;
     }
+
+    #chatArea {
+      scroll-behavior: smooth;
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -41,6 +45,11 @@
   <script>
     let namaUser = "";
 
+    function scrollToBottom() {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
     function kirimPesan() {
       const input = document.getElementById('userInput');
       const pesan = input.value.trim();
@@ -48,7 +57,7 @@
 
       const chatArea = document.getElementById('chatArea');
 
-      // User message
+      // User bubble
       const userBubble = document.createElement('div');
       userBubble.className = 'bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2';
       userBubble.textContent = pesan;
@@ -65,28 +74,45 @@
         } else {
           balasan = "Boleh tahu siapa nama kamu, bro?";
         }
+
       } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Halo ${namaUser}! Siap bahas bola? ⚽` : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
+        balasan = namaUser
+          ? `Halo ${namaUser}! Siap bahas bola? ⚽`
+          : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
+
       } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
         balasan = "Saya BotPrediksi ⚽, siap bantu kamu soal bola 24 jam!";
+
       } else if (["terima kasih", "makasih"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽` : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
+        balasan = namaUser
+          ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽`
+          : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
+
       } else if (["apa kabar", "gimana kabar", "sehat"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽` : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
+        balasan = namaUser
+          ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽`
+          : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
+
       } else if (["bantuan", "help", "gimana caranya", "cara pakai"].some(k => teks.includes(k))) {
         balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
+
       } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
         balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
+
       } else {
-        balasan = namaUser ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽` : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
+        balasan = namaUser
+          ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽`
+          : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
       }
 
+      // Bot bubble
       const botBubble = document.createElement('div');
       botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
       botBubble.textContent = balasan;
       chatArea.appendChild(botBubble);
 
-      chatArea.scrollTop = chatArea.scrollHeight;
+      // Auto scroll
+      scrollToBottom();
       input.value = '';
     }
   </script>
