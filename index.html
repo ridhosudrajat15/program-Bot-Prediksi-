@@ -16,19 +16,19 @@
 </head>
 <body class="bg-gray-900 text-white flex flex-col min-h-screen">
 
-  <!-- HEADER -->
-  <header class="bg-gray-800 w-[100vw] flex justify-between items-center px-4 py-3">
+  <!-- ✅ HEADER STICKY -->
+  <header class="bg-gray-800 w-full fixed top-0 left-0 z-50 flex justify-between items-center px-4 py-3">
     <button class="text-white text-2xl">☰</button>
     <h1 class="text-lg font-bold">BotPrediksi</h1>
     <button class="text-white text-2xl">⚙️</button>
   </header>
 
-  <!-- CHAT AREA -->
-  <main id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
+  <!-- ✅ CHAT AREA -->
+  <main id="chatArea" class="pt-20 flex-1 overflow-y-auto p-4 space-y-4 max-w-4xl mx-auto w-full">
     <!-- Chat bubbles will be injected here -->
   </main>
 
-  <!-- INPUT -->
+  <!-- ✅ INPUT -->
   <footer class="bg-gray-800 p-3 flex items-center space-x-2 max-w-4xl mx-auto w-full">
     <button class="text-2xl">➕</button>
     <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..." class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none" onkeydown="if(event.key==='Enter') kirimPesan()" />
@@ -36,12 +36,12 @@
     <button class="text-2xl" onclick="kirimPesan()">📤</button>
   </footer>
 
-  <!-- FOOTER INFO -->
+  <!-- ✅ FOOTER INFO -->
   <div class="text-center text-xs text-gray-400 py-2 bg-gray-900 border-t border-gray-800 w-full">
     © 2025 BotPrediksi | Ini hanya prediksi, bukan taruhan
   </div>
 
-  <!-- SCRIPT -->
+  <!-- ✅ SCRIPT -->
   <script>
     let namaUser = "";
 
@@ -61,7 +61,6 @@
       const teks = pesan.toLowerCase();
       let balasan = "";
 
-      // === Logika Deteksi Nama ===
       if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
         const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
         if (namaMatch && namaMatch[2]) {
@@ -71,44 +70,36 @@
           balasan = "Boleh tahu siapa nama kamu, bro?";
         }
 
-      // === Sapaan Umum ===
       } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
         balasan = namaUser
           ? `Halo ${namaUser}! Siap bahas bola? ⚽`
           : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
 
-      // === Tanya Bot ===
       } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
         balasan = "Saya BotPrediksi ⚽, siap bantu kamu soal bola 24 jam!";
 
-      // === Terima Kasih ===
       } else if (["terima kasih", "makasih"].some(k => teks.includes(k))) {
         balasan = namaUser
           ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽`
           : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
 
-      // === Kabar ===
       } else if (["apa kabar", "gimana kabar", "sehat"].some(k => teks.includes(k))) {
         balasan = namaUser
           ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽`
           : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
 
-      // === Bantuan ===
       } else if (["bantuan", "help", "gimana caranya", "cara pakai"].some(k => teks.includes(k))) {
         balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
 
-      // === Kasar ===
       } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
         balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
 
-      // === Default fallback ===
       } else {
         balasan = namaUser
           ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽`
           : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
       }
 
-      // Bot bubble
       const botBubble = document.createElement('div');
       botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
       botBubble.textContent = balasan;
