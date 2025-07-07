@@ -13,7 +13,6 @@
       height: 100%;
       overflow: hidden;
     }
-
     #chatArea {
       scroll-behavior: smooth;
     }
@@ -30,14 +29,31 @@
 
   <!-- ✅ MAIN CHAT AREA SCROLLABLE -->
   <main id="chatArea" class="pt-16 pb-24 px-4 space-y-4 overflow-y-auto max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-    <!-- Chat akan muncul di sini -->
+    <!-- Chat muncul di sini -->
   </main>
 
   <!-- ✅ FOOTER FIXED -->
   <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-50 p-3 flex items-center space-x-2 max-w-4xl mx-auto">
-    <button class="text-2xl">➕</button>
-    <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..." class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none" onkeydown="if(event.key==='Enter') kirimPesan()" />
-    <button class="text-2xl">🎤</button>
+    
+    <!-- Tombol ➕ -->
+    <div class="relative">
+      <button onclick="toggleUploadMenu()" class="text-2xl">➕</button>
+      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-lg hidden shadow-md z-50">
+        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          Ambil Foto
+          <input type="file" accept="image/*" capture="environment" onchange="handleImage(this.files[0])" class="hidden">
+        </label>
+        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          Pilih dari Galeri
+          <input type="file" accept="image/*" onchange="handleImage(this.files[0])" class="hidden">
+        </label>
+      </div>
+    </div>
+
+    <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..."
+      class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none"
+      onkeydown="if(event.key==='Enter') kirimPesan()" />
+
     <button class="text-2xl" onclick="kirimPesan()">📤</button>
   </footer>
 
@@ -57,7 +73,6 @@
 
       const chatArea = document.getElementById('chatArea');
 
-      // User bubble
       const userBubble = document.createElement('div');
       userBubble.className = 'bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2';
       userBubble.textContent = pesan;
@@ -74,46 +89,77 @@
         } else {
           balasan = "Boleh tahu siapa nama kamu, bro?";
         }
-
       } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
         balasan = namaUser
           ? `Halo ${namaUser}! Siap bahas bola? ⚽`
           : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
-
       } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
         balasan = "Saya BotPrediksi ⚽, siap bantu kamu soal bola 24 jam!";
-
       } else if (["terima kasih", "makasih"].some(k => teks.includes(k))) {
         balasan = namaUser
           ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽`
           : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
-
       } else if (["apa kabar", "gimana kabar", "sehat"].some(k => teks.includes(k))) {
         balasan = namaUser
           ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽`
           : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
-
       } else if (["bantuan", "help", "gimana caranya", "cara pakai"].some(k => teks.includes(k))) {
         balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
-
       } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
         balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
-
       } else {
         balasan = namaUser
           ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽`
           : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
       }
 
-      // Bot bubble
       const botBubble = document.createElement('div');
       botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
       botBubble.textContent = balasan;
       chatArea.appendChild(botBubble);
 
-      // Auto scroll
       scrollToBottom();
       input.value = '';
+    }
+
+    function toggleUploadMenu() {
+      const menu = document.getElementById("uploadMenu");
+      menu.classList.toggle("hidden");
+      document.addEventListener("click", closeMenuOutside, { once: true });
+    }
+
+    function closeMenuOutside(e) {
+      const menu = document.getElementById("uploadMenu");
+      if (!menu.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    }
+
+    function handleImage(file) {
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imageUrl = e.target.result;
+          const chatArea = document.getElementById('chatArea');
+
+          const imgDiv = document.createElement("div");
+          imgDiv.className = "w-fit max-w-[80%]";
+          imgDiv.innerHTML = `<img src="${imageUrl}" class="rounded-xl max-w-xs mb-2" alt="gambar kiriman">`;
+          chatArea.appendChild(imgDiv);
+
+          // Bot respon gambar
+          setTimeout(() => {
+            const botReply = document.createElement("div");
+            botReply.className = "bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto";
+            botReply.textContent = "Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽📷";
+            chatArea.appendChild(botReply);
+            scrollToBottom();
+          }, 700);
+
+          scrollToBottom();
+        };
+        reader.readAsDataURL(file);
+      }
     }
   </script>
 
