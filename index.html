@@ -27,40 +27,40 @@
     <button class="text-white text-2xl">⚙️</button>
   </header>
 
-  <!-- ✅ MAIN CHAT AREA SCROLLABLE -->
+  <!-- ✅ MAIN CHAT AREA -->
   <main id="chatArea" class="pt-16 pb-24 px-4 space-y-4 overflow-y-auto max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-    <!-- Chat akan muncul di sini -->
+    <!-- Chat muncul di sini -->
   </main>
 
   <!-- ✅ FOOTER FIXED -->
   <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-50 p-3 flex items-center space-x-2 max-w-4xl mx-auto">
-    
-    <!-- Tombol ➕ dengan Menu Pilihan -->
+
+    <!-- Tombol ➕ dengan menu -->
     <div class="relative">
       <button onclick="toggleUploadMenu()" class="text-white text-xl">➕</button>
-      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-xl hidden shadow-md z-50 w-48">
-        <label class="flex items-center gap-2 px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          📸 Ambil foto
+      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-lg hidden shadow-md z-50 w-40">
+        <label class="flex items-center px-4 py-2 hover:bg-gray-600 cursor-pointer gap-2">
+          📷 Ambil Foto
           <input type="file" accept="image/*" capture="environment" onchange="handleImage(this.files[0])" class="hidden">
         </label>
-        <label class="flex items-center gap-2 px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          🖼️ Tambah foto
+        <label class="flex items-center px-4 py-2 hover:bg-gray-600 cursor-pointer gap-2">
+          🖼️ Tambah Foto
           <input type="file" accept="image/*" onchange="handleImage(this.files[0])" class="hidden">
         </label>
-        <label class="flex items-center gap-2 px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          📎 Tambah file
-          <input type="file" onchange="handleFile(this.files[0])" class="hidden">
+        <label class="flex items-center px-4 py-2 hover:bg-gray-600 cursor-pointer gap-2">
+          📁 Tambah File
+          <input type="file" onchange="handleImage(this.files[0])" class="hidden">
         </label>
       </div>
     </div>
 
-    <!-- Input -->
+    <!-- Input teks -->
     <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..."
       class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none"
       onkeydown="if(event.key==='Enter') kirimPesan()" />
 
-    <!-- Tombol Kirim dengan Ikon Panah -->
-    <button class="text-white text-xl" onclick="kirimPesan()">⬆️</button>
+    <!-- Tombol kirim -->
+    <button class="text-white text-xl" onclick="kirimPesan()">✔️</button>
   </footer>
 
   <!-- ✅ SCRIPT -->
@@ -131,11 +131,23 @@
     function toggleUploadMenu() {
       const menu = document.getElementById("uploadMenu");
       menu.classList.toggle("hidden");
-      document.addEventListener("click", function closeOutside(e) {
-        if (!menu.contains(e.target)) {
-          menu.classList.add("hidden");
-        }
-      }, { once: true });
+
+      document.removeEventListener("click", handleOutsideClick);
+      if (!menu.classList.contains("hidden")) {
+        setTimeout(() => {
+          document.addEventListener("click", handleOutsideClick);
+        }, 0);
+      }
+    }
+
+    function handleOutsideClick(e) {
+      const menu = document.getElementById("uploadMenu");
+      const button = e.target.closest("button");
+      const isClickInsideMenu = menu.contains(e.target);
+      if (!isClickInsideMenu && !button) {
+        menu.classList.add("hidden");
+        document.removeEventListener("click", handleOutsideClick);
+      }
     }
 
     function handleImage(file) {
@@ -150,10 +162,11 @@
           imgDiv.innerHTML = `<img src="${imageUrl}" class="rounded-xl max-w-xs mb-2" alt="gambar kiriman">`;
           chatArea.appendChild(imgDiv);
 
+          // Bot respon gambar
           setTimeout(() => {
             const botReply = document.createElement("div");
             botReply.className = "bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto";
-            botReply.textContent = "📷 Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽";
+            botReply.textContent = "Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽📷";
             chatArea.appendChild(botReply);
             scrollToBottom();
           }, 700);
@@ -163,18 +176,6 @@
         reader.readAsDataURL(file);
       }
     }
-
-    function handleFile(file) {
-      if (file) {
-        const chatArea = document.getElementById("chatArea");
-        const fileDiv = document.createElement("div");
-        fileDiv.className = "bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2 text-sm";
-        fileDiv.textContent = `📎 File "${file.name}" telah diunggah. (fitur analisis file belum aktif)`;
-        chatArea.appendChild(fileDiv);
-        scrollToBottom();
-      }
-    }
   </script>
-
 </body>
 </html>
