@@ -75,10 +75,8 @@
     let namaUser = "";
 
     function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('overlay');
-      sidebar.classList.toggle('-translate-x-full');
-      overlay.classList.toggle('hidden');
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
     }
 
     function toggleUploadMenu() {
@@ -100,7 +98,6 @@
         reader.onload = function (e) {
           const imageUrl = e.target.result;
           const chatArea = document.getElementById('chatArea');
-
           const imgDiv = document.createElement("div");
           imgDiv.className = "w-fit max-w-[80%]";
           imgDiv.innerHTML = `<img src="${imageUrl}" class="rounded-xl max-w-xs mb-2" alt="gambar kiriman">`;
@@ -125,11 +122,10 @@
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    function kirimPesan() {
+    async function kirimPesan() {
       const input = document.getElementById('userInput');
       const pesan = input.value.trim();
-      if (pesan === '') return;
-
+      if (!pesan) return;
       const chatArea = document.getElementById('chatArea');
 
       const userBubble = document.createElement('div');
@@ -137,17 +133,30 @@
       userBubble.textContent = pesan;
       chatArea.appendChild(userBubble);
 
+      scrollToBottom();
+      input.value = '';
+
       const teks = pesan.toLowerCase();
       let balasan = "";
 
-      if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
-        const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
-        if (namaMatch && namaMatch[2]) {
-          namaUser = namaMatch[2].charAt(0).toUpperCase() + namaMatch[2].slice(1);
-          balasan = `Hai ${namaUser}! Nama kamu keren ⚽. Silakan tanya tentang sepak bola!`;
+      if (/(prediksi|siapa yang menang|skor akhir|hasil pertandingan)/.test(teks)) {
+        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?live=all`, {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': 'ce13b7fee5bfbaa4476de793b906f0d2',
+            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+          }
+        });
+        const data = await res.json();
+        if (data.response && data.response.length > 0) {
+          balasan = `Pertandingan live saat ini: ${data.response[0].teams.home.name} vs ${data.response[0].teams.away.name}`;
         } else {
-          balasan = "Boleh tahu siapa nama kamu, bro?";
+          balasan = "Belum ada pertandingan live saat ini. Coba lagi nanti ya!";
         }
+      } else if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
+        const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
+        namaUser = namaMatch ? namaMatch[2].charAt(0).toUpperCase() + namaMatch[2].slice(1) : namaUser;
+        balasan = namaUser ? `Hai ${namaUser}! Nama kamu keren ⚽. Silakan tanya tentang sepak bola!` : "Boleh tahu siapa nama kamu, bro?";
       } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
         balasan = namaUser ? `Halo ${namaUser}! Siap bahas bola? ⚽` : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
       } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
@@ -168,14 +177,11 @@
       botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
       botBubble.textContent = balasan;
       chatArea.appendChild(botBubble);
-
       scrollToBottom();
-      input.value = '';
     }
 
     function hapusChat() {
-      const chatArea = document.getElementById('chatArea');
-      chatArea.innerHTML = '';
+      document.getElementById('chatArea').innerHTML = '';
     }
   </script>
 </body>
