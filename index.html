@@ -159,6 +159,11 @@
   getJadwalLigaHariIni(teks).then(res => tampilkanBalasan(res));
   input.value = '';
   return;
+      } else if (["pertandingan bola malam ini", "pertandingan bola hari ini", "bola malam ini"].some(k => teks.includes(k))) {
+      getJadwalSemuaLigaHariIni().then(res => tampilkanBalasan(res));
+      input.value = '';
+      return;
+    
         
       } else if (teks.includes("prediksi") && teks.includes("vs")) {
         getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
@@ -277,8 +282,44 @@
   } catch (err) {
     return "Ups! Gagal ambil jadwal liga. Coba lagi nanti bro.";
   }
+      async function getJadwalSemuaLigaHariIni() {
+      const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
+      const tanggalHariIni = new Date().toISOString().split("T")[0];
+      try {
+        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${tanggalHariIni}&season=2024`, {
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+          }
+        });
+        const data = await res.json();
+        const match = data.response;
+
+        if (!match || match.length === 0) return "Tidak ada pertandingan bola hari ini bro.";
+
+        const jadwal = match.map(m => {
+          const home = m.teams.home.name;
+          const away = m.teams.away.name;
+          const jam = new Date(m.fixture.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          return `- ${home} vs ${away} (${jam} WIB)`;
+        }).join("\n");
+
+        return `📅 Jadwal pertandingan bola hari ini:\n${jadwal}`;
+      } catch (err) {
+        return "Ups! Gagal ambil jadwal hari ini. Coba lagi nanti bro.";
+      }
     }
-    
+  </script>
+
+  <!-- ✅ PANGGIL DI KIRIM PESAN -->
+  <script>
+    // tambahkan ke dalam logika kirimPesan()
+    // setelah else if teks.includes("liga") {
+    else if (["pertandingan bola malam ini", "pertandingan bola hari ini", "bola malam ini"].some(k => teks.includes(k))) {
+      getJadwalSemuaLigaHariIni().then(res => tampilkanBalasan(res));
+      input.value = '';
+      return;
+    }  
   </script>
 </body>
 </html>
