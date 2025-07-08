@@ -310,16 +310,5 @@
       }
     }
   </script>
-
-  <!-- ✅ PANGGIL DI KIRIM PESAN -->
-  <script>
-    // tambahkan ke dalam logika kirimPesan()
-    // setelah else if teks.includes("liga") {
-    else if (["pertandingan bola malam ini", "pertandingan bola hari ini", "bola malam ini"].some(k => teks.includes(k))) {
-      getJadwalSemuaLigaHariIni().then(res => tampilkanBalasan(res));
-      input.value = '';
-      return;
-    }  
-  </script>
 </body>
 </html>
