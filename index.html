@@ -155,6 +155,11 @@
         balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
       } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
         balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
+     } else if (teks.includes("liga")) {
+  getJadwalLigaHariIni(teks).then(res => tampilkanBalasan(res));
+  input.value = '';
+  return;
+        
       } else if (teks.includes("prediksi") && teks.includes("vs")) {
         getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
         input.value = '';
@@ -227,6 +232,53 @@
       };
       return map[bulan.toLowerCase()] || "01";
     }
+    async function getJadwalLigaHariIni(teks) {
+  try {
+    const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
+    const ligaMapping = {
+      "liga inggris": 39,
+      "premier league": 39,
+      "liga spanyol": 140,
+      "la liga": 140,
+      "liga italia": 135,
+      "serie a": 135,
+      "liga jerman": 78,
+      "bundesliga": 78,
+      "liga prancis": 61,
+      "ligue 1": 61
+    };
+
+    const ditemukan = Object.keys(ligaMapping).find(nama => teks.includes(nama));
+    if (!ditemukan) return "Nama liga tidak dikenali bro. Contoh: Liga Inggris, La Liga, Serie A";
+
+    const idLiga = ligaMapping[ditemukan];
+    const tanggalHariIni = new Date().toISOString().split("T")[0];
+
+    const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${tanggalHariIni}&league=${idLiga}&season=2024`, {
+      headers: {
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+      }
+    });
+
+    const data = await res.json();
+    const match = data.response;
+
+    if (!match || match.length === 0) return `Tidak ada pertandingan ${ditemukan} hari ini bro.`;
+
+    const jadwal = match.map(m => {
+      const home = m.teams.home.name;
+      const away = m.teams.away.name;
+      const jam = new Date(m.fixture.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      return `- ${home} vs ${away} (${jam} WIB)`;
+    }).join("\n");
+
+    return `📅 Jadwal ${ditemukan.toUpperCase()} hari ini:\n${jadwal}`;
+  } catch (err) {
+    return "Ups! Gagal ambil jadwal liga. Coba lagi nanti bro.";
+  }
+    }
+    
   </script>
 </body>
 </html>
