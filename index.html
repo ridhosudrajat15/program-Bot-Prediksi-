@@ -20,7 +20,7 @@
 </head>
 <body class="bg-gray-900 text-white">
 
-  <!-- ✅ SIDEBAR -->
+  <!-- SIDEBAR -->
   <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 transform -translate-x-full transition-transform duration-300 z-50">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-xl font-bold">Menu</h2>
@@ -36,22 +36,22 @@
     </ul>
   </div>
 
-  <!-- ✅ OVERLAY -->
+  <!-- OVERLAY -->
   <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleSidebar()"></div>
 
-  <!-- ✅ HEADER -->
+  <!-- HEADER -->
   <header class="bg-gray-800 fixed top-0 left-0 w-full z-30 flex justify-between items-center px-4 py-3">
     <button class="text-white text-2xl" onclick="toggleSidebar()">☰</button>
     <h1 class="text-lg font-bold">Bot Prediksi Sepakbola</h1>
     <button class="text-white text-2xl">🇮🇩</button>
   </header>
 
-  <!-- ✅ MAIN -->
+  <!-- MAIN -->
   <main id="chatArea" class="pt-16 pb-24 px-4 space-y-4 overflow-y-auto max-w-4xl mx-auto h-[calc(100vh-8rem)]">
     <!-- chat muncul di sini -->
   </main>
 
-  <!-- ✅ FOOTER -->
+  <!-- FOOTER -->
   <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-30 p-3 flex items-center space-x-2 max-w-4xl mx-auto">
     <div class="relative">
       <button onclick="toggleUploadMenu()" class="text-2xl">➕</button>
@@ -70,7 +70,7 @@
     <button class="text-2xl" onclick="kirimPesan()">✔️</button>
   </footer>
 
-  <!-- ✅ SCRIPT -->
+  <!-- SCRIPT -->
   <script>
     let namaUser = "";
 
@@ -125,7 +125,7 @@
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    function kirimPesan() {
+    async function kirimPesan() {
       const input = document.getElementById('userInput');
       const pesan = input.value.trim();
       if (pesan === '') return;
@@ -137,35 +137,13 @@
       userBubble.textContent = pesan;
       chatArea.appendChild(userBubble);
 
+      scrollToBottom();
+      input.value = '';
+
       const teks = pesan.toLowerCase();
       let balasan = "";
 
-      if (teks.includes("prediksi malam ini")) {
-        const now = new Date();
-        const tanggal = now.toISOString().split("T")[0];
-        fetch(`https://v3.football.api-sports.io/fixtures?date=${tanggal}`, {
-          method: "GET",
-          headers: {
-            "x-apisports-key": "API_KEY_KAMU",
-          },
-        })
-          .then(res => res.json())
-          .then(data => {
-            const malam = data.response.filter(fix => {
-              const jam = new Date(fix.fixture.date).getHours();
-              return jam >= 18;
-            });
-            if (malam.length === 0) {
-              tampilkanBot("Tidak ada pertandingan malam ini");
-            } else {
-              const info = malam.map(m => `${m.teams.home.name} vs ${m.teams.away.name}`).join("\n");
-              tampilkanBot(`Pertandingan malam ini:\n${info}`);
-            }
-          })
-          .catch(() => tampilkanBot("Gagal ambil data pertandingan."));
-        return;
-      }
-
+      // Logika Nama
       if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
         const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
         if (namaMatch && namaMatch[2]) {
@@ -174,6 +152,12 @@
         } else {
           balasan = "Boleh tahu siapa nama kamu, bro?";
         }
+      } else if (teks.includes("prediksi")) {
+        balasan = "Sebentar ya, saya cari datanya dulu...";
+        tampilkanBalasan(botBubble(balasan));
+        const hasilPrediksi = await getPrediksiDariAPI(teks);
+        tampilkanBalasan(botBubble(hasilPrediksi));
+        return;
       } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
         balasan = namaUser ? `Halo ${namaUser}! Siap bahas bola? ⚽` : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
       } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
@@ -190,17 +174,45 @@
         balasan = namaUser ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽` : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
       }
 
-      tampilkanBot(balasan);
-      input.value = '';
+      tampilkanBalasan(botBubble(balasan));
     }
 
-    function tampilkanBot(teks) {
+    function tampilkanBalasan(elemen) {
       const chatArea = document.getElementById('chatArea');
+      chatArea.appendChild(elemen);
+      scrollToBottom();
+    }
+
+    function botBubble(teks) {
       const botBubble = document.createElement('div');
       botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
       botBubble.textContent = teks;
-      chatArea.appendChild(botBubble);
-      scrollToBottom();
+      return botBubble;
+    }
+
+    async function getPrediksiDariAPI(pertanyaan) {
+      try {
+        // Contoh: parsing tim dan tanggal (sementara hardcode)
+        const team1 = "Manchester United";
+        const team2 = "Manchester City";
+        const tanggal = "2025-07-09";
+
+        const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2"; // ganti dengan key kamu
+        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures/headtohead?h2h=${team1}-${team2}&date=${tanggal}`, {
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+          }
+        });
+        const data = await res.json();
+        if (data && data.response && data.response.length > 0) {
+          return `Prediksi pertandingan antara ${team1} vs ${team2} pada ${tanggal} akan diumumkan berdasarkan data sebelumnya ⚽`;
+        } else {
+          return "Maaf bro, tidak ada data prediksi untuk pertandingan itu atau sedang libur.";
+        }
+      } catch (error) {
+        return "Ups, ada error saat ambil data dari API. Coba lagi nanti ya!";
+      }
     }
 
     function hapusChat() {
