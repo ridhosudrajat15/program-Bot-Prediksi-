@@ -1,309 +1,284 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bot Prediksi Sepakbola</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    #chatArea {
-      scroll-behavior: smooth;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bot Prediksi Sepakbola</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #chatArea {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
 <body class="bg-gray-900 text-white">
 
-  <!-- ✅ SIDEBAR -->
-  <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 transform -translate-x-full transition-transform duration-300 z-50">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold">Menu</h2>
-      <button onclick="toggleSidebar()">✖</button>
-    </div>
-    <ul class="space-y-4">
-      <li><a href="#" class="block hover:text-green-400">📊 Statistik Tim</a></li>
-      <li><a href="#" class="block hover:text-green-400">📅 Jadwal Bola</a></li>
-      <li><a href="#" class="block hover:text-green-400">🧠 Tentang Bot</a></li>
-      <li><a href="#" class="block hover:text-green-400">⚙️ Pengaturan</a></li>
-      <li><a href="#" class="block hover:text-green-400">❓ Bantuan</a></li>
-      <li><a href="#" onclick="hapusChat()" class="block hover:text-red-400">🚪 Hapus Chat</a></li>
-    </ul>
-  </div>
+  <!-- ✅ SIDEBAR -->
+  <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 transform -translate-x-full transition-transform duration-300 z-50">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold">Menu</h2>
+      <button onclick="toggleSidebar()">✖</button>
+    </div>
+    <ul class="space-y-4">
+      <li><a href="#" class="block hover:text-green-400">📊 Statistik Tim</a></li>
+      <li><a href="#" class="block hover:text-green-400">📅 Jadwal Bola</a></li>
+      <li><a href="#" class="block hover:text-green-400">🧠 Tentang Bot</a></li>
+      <li><a href="#" class="block hover:text-green-400">⚙️ Pengaturan</a></li>
+      <li><a href="#" class="block hover:text-green-400">❓ Bantuan</a></li>
+      <li><a href="#" onclick="hapusChat()" class="block hover:text-red-400">🚪 Hapus Chat</a></li>
+    </ul>
+  </div>
 
-  <!-- ✅ OVERLAY -->
-  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleSidebar()"></div>
+  <!-- ✅ OVERLAY -->
+  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleSidebar()"></div>
 
-  <!-- ✅ HEADER -->
-  <header class="bg-gray-800 fixed top-0 left-0 w-full z-30 flex justify-between items-center px-4 py-3">
-    <button class="text-white text-2xl" onclick="toggleSidebar()">☰</button>
-    <h1 class="text-lg font-bold">Bot Prediksi Sepakbola</h1>
-    <button class="text-white text-2xl">🇮🇩</button>
-  </header>
+  <!-- ✅ HEADER -->
+  <header class="bg-gray-800 fixed top-0 left-0 w-full z-30 flex justify-between items-center px-4 py-3">
+    <button class="text-white text-2xl" onclick="toggleSidebar()">☰</button>
+    <h1 class="text-lg font-bold">Bot Prediksi Sepakbola</h1>
+    <button class="text-white text-2xl">🇮🇩</button>
+  </header>
 
-  <!-- ✅ MAIN -->
-  <main id="chatArea" class="pt-16 pb-24 px-4 space-y-4 overflow-y-auto max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-    <!-- chat muncul di sini -->
-  </main>
+  <!-- ✅ MAIN -->
+  <main id="chatArea" class="pt-16 pb-24 px-4 space-y-4 overflow-y-auto max-w-4xl mx-auto h-[calc(100vh-8rem)]">
+    <!-- chat muncul di sini -->
+  </main>
 
-  <!-- ✅ FOOTER -->
-  <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-30 p-3 flex items-center space-x-2 max-w-4xl mx-auto">
-    <div class="relative">
-      <button onclick="toggleUploadMenu()" class="text-2xl">➕</button>
-      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-lg hidden shadow-md z-50">
-        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          Ambil Foto
-          <input type="file" accept="image/*" capture="environment" onchange="handleImage(this.files[0])" class="hidden">
-        </label>
-        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
-          Pilih dari Galeri
-          <input type="file" accept="image/*" onchange="handleImage(this.files[0])" class="hidden">
-        </label>
-      </div>
-    </div>
-    <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..." class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none" onkeydown="if(event.key==='Enter') kirimPesan()" />
-    <button class="text-2xl" onclick="kirimPesan()">✔️</button>
-  </footer>
+  <!-- ✅ FOOTER -->
+  <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-30 p-3 flex items-center space-x-2 max-w-4xl mx-auto">
+    <div class="relative">
+      <button onclick="toggleUploadMenu()" class="text-2xl">➕</button>
+      <div id="uploadMenu" class="absolute bottom-12 left-0 bg-gray-700 text-sm rounded-lg hidden shadow-md z-50">
+        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          Ambil Foto
+          <input type="file" accept="image/*" capture="environment" onchange="handleImage(this.files[0])" class="hidden">
+        </label>
+        <label class="block px-4 py-2 hover:bg-gray-600 cursor-pointer">
+          Pilih dari Galeri
+          <input type="file" accept="image/*" onchange="handleImage(this.files[0])" class="hidden">
+        </label>
+      </div>
+    </div>
+    <input id="userInput" type="text" placeholder="Tulis pertanyaan di sini..." class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-full outline-none" onkeydown="if(event.key==='Enter') kirimPesan()" />
+    <button class="text-2xl" onclick="kirimPesan()">✔️</button>
+  </footer>
 
-  <script>
-    let namaUser = "";
+  <!-- ✅ SCRIPT -->
+  <script>
+    let namaUser = "";
 
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('-translate-x-full');
-      document.getElementById('overlay').classList.toggle('hidden');
-    }
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
 
-    function toggleUploadMenu() {
-      const menu = document.getElementById("uploadMenu");
-      menu.classList.toggle("hidden");
-      document.addEventListener("click", closeMenuOutside, { once: true });
-    }
+    function toggleUploadMenu() {
+      const menu = document.getElementById("uploadMenu");
+      menu.classList.toggle("hidden");
+      document.addEventListener("click", closeMenuOutside, { once: true });
+    }
 
-    function closeMenuOutside(e) {
-      const menu = document.getElementById("uploadMenu");
-      if (!menu.contains(e.target)) menu.classList.add("hidden");
-    }
+    function closeMenuOutside(e) {
+      const menu = document.getElementById("uploadMenu");
+      if (!menu.contains(e.target)) menu.classList.add("hidden");
+    }
 
-    function handleImage(file) {
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const imgDiv = document.createElement("div");
-          imgDiv.className = "w-fit max-w-[80%]";
-          imgDiv.innerHTML = `<img src="${e.target.result}" class="rounded-xl max-w-xs mb-2" alt="gambar kiriman">`;
-          document.getElementById('chatArea').appendChild(imgDiv);
+    function handleImage(file) {
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const imgDiv = document.createElement("div");
+          imgDiv.className = "w-fit max-w-[80%]";
+          imgDiv.innerHTML = `<img src="${e.target.result}" class="rounded-xl max-w-xs mb-2" alt="gambar kiriman">`;
+          document.getElementById('chatArea').appendChild(imgDiv);
 
-          setTimeout(() => {
-            tampilkanBalasan("Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽📷");
-          }, 700);
+          setTimeout(() => {
+            tampilkanBalasan("Gambar diterima! Akan saya analisis dalam konteks sepak bola ⚽📷");
+          }, 700);
 
-          scrollToBottom();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
+          scrollToBottom();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
 
-    function scrollToBottom() {
-      const chatArea = document.getElementById('chatArea');
-      chatArea.scrollTop = chatArea.scrollHeight;
-    }
+    function scrollToBottom() {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
 
-    function tampilkanBalasan(teks) {
-      const botBubble = document.createElement('div');
-      botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
-      botBubble.textContent = teks;
-      document.getElementById('chatArea').appendChild(botBubble);
-      scrollToBottom();
-    }
+    function tampilkanBalasan(teks) {
+      const botBubble = document.createElement('div');
+      botBubble.className = 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto';
+      botBubble.textContent = teks;
+      document.getElementById('chatArea').appendChild(botBubble);
+      scrollToBottom();
+    }
 
-    async function kirimPesan() {
-      const input = document.getElementById('userInput');
-      const pesan = input.value.trim();
-      if (pesan === '') return;
+    async function kirimPesan() {
+      const input = document.getElementById('userInput');
+      const pesan = input.value.trim();
+      if (pesan === '') return;
 
-      const userBubble = document.createElement('div');
-      userBubble.className = 'bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2';
-      userBubble.textContent = pesan;
-      document.getElementById('chatArea').appendChild(userBubble);
+      const userBubble = document.createElement('div');
+      userBubble.className = 'bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2';
+      userBubble.textContent = pesan;
+      document.getElementById('chatArea').appendChild(userBubble);
 
-      const teks = pesan.toLowerCase();
-      let balasan = "";
+      const teks = pesan.toLowerCase();
+      let balasan = "";
 
-      if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
-        const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
-        if (namaMatch && namaMatch[2]) {
-          namaUser = namaMatch[2].charAt(0).toUpperCase() + namaMatch[2].slice(1);
-          balasan = `Hai ${namaUser}! Nama kamu keren ⚽. Silakan tanya tentang sepak bola!`;
-        } else {
-          balasan = "Boleh tahu siapa nama kamu, bro?";
-        }
-      } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Halo ${namaUser}! Siap bahas bola? ⚽` : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
-      } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
-        balasan = "Saya BotPrediksi ⚽, siap bantu kamu soal bola 24 jam!";
-      } else if (["terima kasih", "makasih"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽` : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
-      } else if (["apa kabar", "gimana kabar", "sehat"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽` : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
-      } else if (["bantuan", "help", "gimana caranya", "cara pakai"].some(k => teks.includes(k))) {
-        balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
-      } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
-        balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
-      } else if (["pertandingan bola malam ini", "pertandingan bola hari ini", "bola malam ini"].some(k => teks.includes(k))) {
-        getJadwalSemuaLigaHariIni().then(res => tampilkanBalasan(res));
-        input.value = '';
-        return;
-      } else if (teks.includes("liga")) {
-        getJadwalLigaHariIni(teks).then(res => tampilkanBalasan(res));
-        input.value = '';
-        return;
-      } else if (teks.includes("prediksi") && teks.includes("vs")) {
-        getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
-        input.value = '';
-        return;
-      } else {
-        balasan = namaUser ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽` : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
-      }
+      if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
+        const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
+        if (namaMatch && namaMatch[2]) {
+          namaUser = namaMatch[2].charAt(0).toUpperCase() + namaMatch[2].slice(1);
+          balasan = `Hai ${namaUser}! Nama kamu keren ⚽. Silakan tanya tentang sepak bola!`;
+        } else {
+          balasan = "Boleh tahu siapa nama kamu, bro?";
+        }
+      } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
+        balasan = namaUser ? `Halo ${namaUser}! Siap bahas bola? ⚽` : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
+      } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
+        balasan = "Saya BotPrediksi ⚽, siap bantu kamu soal bola 24 jam!";
+      } else if (["terima kasih", "makasih"].some(k => teks.includes(k))) {
+        balasan = namaUser ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽` : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
+      } else if (["apa kabar", "gimana kabar", "sehat"].some(k => teks.includes(k))) {
+        balasan = namaUser ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽` : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
+      } else if (["bantuan", "help", "gimana caranya", "cara pakai"].some(k => teks.includes(k))) {
+        balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
+      } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
+        balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
+     } else if (teks.includes("liga")) {
+  getJadwalLigaHariIni(teks).then(res => tampilkanBalasan(res));
+  input.value = '';
+  return;
+        
+      } else if (teks.includes("prediksi") && teks.includes("vs")) {
+        getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
+        input.value = '';
+        return;
+      } else {
+        balasan = namaUser ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽` : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
+      }
 
-      tampilkanBalasan(balasan);
-      input.value = '';
-      input.focus();
-    }
+      tampilkanBalasan(balasan);
+      input.value = '';
+    }
 
-    function hapusChat() {
-      document.getElementById('chatArea').innerHTML = '';
-    }
+    function hapusChat() {
+      document.getElementById('chatArea').innerHTML = '';
+    }
 
-    async function getPrediksiScoreDanOverUnder(pertanyaan) {
-      try {
-        const matchRegex = /prediksi(?: skor)?\s+([a-zA-Z\s]+)\s+vs\s+([a-zA-Z\s]+)(?:\s+pada\s+tanggal\s+(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4}))?/i;
-        const match = pertanyaan.match(matchRegex);
-        if (!match) return "Format pertanyaan belum dipahami bro. Contoh: Prediksi skor Persib vs Arema tanggal 10 Juli 2025";
+    async function getPrediksiScoreDanOverUnder(pertanyaan) {
+      try {
+        const matchRegex = /prediksi(?: skor)?\s+([a-zA-Z\s]+)\s+vs\s+([a-zA-Z\s]+)(?:\s+pada\s+tanggal\s+(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4}))?/i;
+        const match = pertanyaan.match(matchRegex);
+        if (!match) return "Format pertanyaan belum dipahami bro. Contoh: Prediksi skor Persib vs Arema tanggal 10 Juli 2025";
 
-        const team1 = match[1].trim();
-        const team2 = match[2].trim();
-        let tanggal = "";
-        if (match[3] && match[4] && match[5]) {
-          const day = match[3].padStart(2, '0');
-          const month = getMonthNumber(match[4]);
-          tanggal = `${match[5]}-${month}-${day}`;
-        }
+        const team1 = match[1].trim();
+        const team2 = match[2].trim();
+        let tanggal = "";
+        if (match[3] && match[4] && match[5]) {
+          const day = match[3].padStart(2, '0');
+          const month = getMonthNumber(match[4]);
+          tanggal = `${match[5]}-${month}-${day}`;
+        }
 
-        const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
-        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures/headtohead?h2h=${team1}-${team2}`, {
-          headers: {
-            'X-RapidAPI-Key': apiKey,
-            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
-          }
-        });
+        const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
+        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures/headtohead?h2h=${team1}-${team2}`, {
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+          }
+        });
+        const data = await res.json();
+        const matches = data.response;
 
-        const data = await res.json();
-        const matches = data.response;
+        if (!matches || matches.length === 0) return "Tidak ditemukan data head-to-head untuk tim tersebut.";
 
-        if (!matches || matches.length === 0) return "Tidak ditemukan data head-to-head untuk tim tersebut.";
+        let totalGol = 0;
+        let over = 0, under = 0;
+        matches.forEach(m => {
+          const g1 = m.goals.home ?? 0;
+          const g2 = m.goals.away ?? 0;
+          const total = g1 + g2;
+          totalGol += total;
+          total > 2.5 ? over++ : under++;
+        });
 
-        let totalGol = 0;
-        let over = 0, under = 0;
-        matches.forEach(m => {
-          const g1 = m.goals.home ?? 0;
-          const g2 = m.goals.away ?? 0;
-          const total = g1 + g2;
-          totalGol += total;
-          total > 2.5 ? over++ : under++;
-        });
+        const rataGol = (totalGol / matches.length).toFixed(2);
+        return `📊 Prediksi ${team1} vs ${team2}:
+- Rata-rata gol: ${rataGol}
+- Over 2.5: ${over}x
+- Under 2.5: ${under}x
+🎯 Perkiraan: ${rataGol > 2.5 ? "Over 2.5 ⚽" : "Under 2.5 ⚽"}`;
+      } catch (err) {
+        return "Gagal ambil data dari API bro. Coba lagi nanti.";
+      }
+    }
 
-        const rataGol = (totalGol / matches.length).toFixed(2);
-        return `📊 Prediksi ${team1} vs ${team2}:\n- Rata-rata gol: ${rataGol}\n- Over 2.5: ${over}x\n- Under 2.5: ${under}x\n🎯 Perkiraan: ${rataGol > 2.5 ? "Over 2.5 ⚽" : "Under 2.5 ⚽"}`;
-      } catch (err) {
-        return "Gagal ambil data dari API bro. Coba lagi nanti.";
-      }
-    }
+    function getMonthNumber(bulan) {
+      const map = {
+        januari: "01", februari: "02", maret: "03", april: "04", mei: "05",
+        juni: "06", juli: "07", agustus: "08", september: "09",
+        oktober: "10", november: "11", desember: "12"
+      };
+      return map[bulan.toLowerCase()] || "01";
+    }
+    async function getJadwalLigaHariIni(teks) {
+  try {
+    const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
+    const ligaMapping = {
+      "liga inggris": 39,
+      "premier league": 39,
+      "liga spanyol": 140,
+      "la liga": 140,
+      "liga italia": 135,
+      "serie a": 135,
+      "liga jerman": 78,
+      "bundesliga": 78,
+      "liga prancis": 61,
+      "ligue 1": 61
+    };
 
-    function getMonthNumber(bulan) {
-      const map = {
-        januari: "01", februari: "02", maret: "03", april: "04", mei: "05",
-        juni: "06", juli: "07", agustus: "08", september: "09",
-        oktober: "10", november: "11", desember: "12"
-      };
-      return map[bulan.toLowerCase()] || "01";
-    }
+    const ditemukan = Object.keys(ligaMapping).find(nama => teks.includes(nama));
+    if (!ditemukan) return "Nama liga tidak dikenali bro. Contoh: Liga Inggris, La Liga, Serie A";
 
-    async function getJadwalLigaHariIni(teks) {
-      try {
-        const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
-        const ligaMapping = {
-          "liga inggris": 39, "premier league": 39,
-          "liga spanyol": 140, "la liga": 140,
-          "liga italia": 135, "serie a": 135,
-          "liga jerman": 78, "bundesliga": 78,
-          "liga prancis": 61, "ligue 1": 61
-        };
+    const idLiga = ligaMapping[ditemukan];
+    const tanggalHariIni = new Date().toISOString().split("T")[0];
 
-        const ditemukan = Object.keys(ligaMapping).find(nama => teks.includes(nama));
-        if (!ditemukan) return "Nama liga tidak dikenali bro. Contoh: Liga Inggris, La Liga, Serie A";
+    const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${tanggalHariIni}&league=${idLiga}&season=2024`, {
+      headers: {
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+      }
+    });
 
-        const idLiga = ligaMapping[ditemukan];
-        const tanggalHariIni = new Date().toISOString().split("T")[0];
+    const data = await res.json();
+    const match = data.response;
 
-        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${tanggalHariIni}&league=${idLiga}&season=2024`, {
-          headers: {
-            'X-RapidAPI-Key': apiKey,
-            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
-          }
-        });
+    if (!match || match.length === 0) return `Tidak ada pertandingan ${ditemukan} hari ini bro.`;
 
-        const data = await res.json();
-        const match = data.response;
+    const jadwal = match.map(m => {
+      const home = m.teams.home.name;
+      const away = m.teams.away.name;
+      const jam = new Date(m.fixture.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      return `- ${home} vs ${away} (${jam} WIB)`;
+    }).join("\n");
 
-        if (!match || match.length === 0) return `Tidak ada pertandingan ${ditemukan} hari ini bro.`;
-
-        const jadwal = match.map(m => {
-          const home = m.teams.home.name;
-          const away = m.teams.away.name;
-          const jam = new Date(m.fixture.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-          return `- ${home} vs ${away} (${jam} WIB)`;
-        }).join("\n");
-
-        return `📅 Jadwal ${ditemukan.toUpperCase()} hari ini:\n${jadwal}`;
-      } catch (err) {
-        return "Ups! Gagal ambil jadwal liga. Coba lagi nanti bro.";
-      }
-    }
-
-    async function getJadwalSemuaLigaHariIni() {
-      try {
-        const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
-        const tanggalHariIni = new Date().toISOString().split("T")[0];
-
-        const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${tanggalHariIni}&season=2024`, {
-          headers: {
-            'X-RapidAPI-Key': apiKey,
-            'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
-          }
-        });
-
-        const data = await res.json();
-        const match = data.response;
-
-        if (!match || match.length === 0) return "Tidak ada pertandingan bola hari ini bro.";
-
-        const jadwal = match.map(m => {
-          const home = m.teams.home.name;
-          const away = m.teams.away.name;
-          const jam = new Date(m.fixture.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-          return `- ${home} vs ${away} (${jam} WIB)`;
-        }).join("\n");
-
-        return `📅 Jadwal pertandingan bola hari ini:\n${jadwal}`;
-      } catch (err) {
-        return "Ups! Gagal ambil jadwal hari ini. Coba lagi nanti bro.";
-      }
-    }
-  </script>
+    return `📅 Jadwal ${ditemukan.toUpperCase()} hari ini:\n${jadwal}`;
+  } catch (err) {
+    return "Ups! Gagal ambil jadwal liga. Coba lagi nanti bro.";
+  }
+    }
+    
+  </script>
 </body>
-</html>
+</html> gimana bro udh oke belom? haha
