@@ -27,12 +27,12 @@
       <button onclick="toggleSidebar()">✖</button>
     </div>
     <ul class="space-y-4">
-      <li><a href="#" class="block hover:text-green-400">📊 Statistik Tim</a></li>
+      <li><a href="#" onclick="tampilkanRiwayat()" class="block hover:text-green-400">📊 Riwayat Chat</a></li>
       <li><a href="#" class="block hover:text-green-400">📅 Jadwal Bola</a></li>
-      <li><a href="#" class="block hover:text-green-400">🧠 Tentang Bot</a></li>
       <li><a href="#" class="block hover:text-green-400">⚙️ Pengaturan</a></li>
       <li><a href="#" class="block hover:text-green-400">❓ Bantuan</a></li>
       <li><a href="#" onclick="hapusChat()" class="block hover:text-red-400">🚪 Hapus Chat</a></li>
+      <li><a href="tentangkami.html" class="block hover:text-green-400">ℹ️ Tentang Kami</a></li>
     </ul>
   </div>
 
@@ -52,7 +52,7 @@
   </main>
 
   <!-- ✅ FOOTER -->
- <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-50 p-3 flex items-center space-x-2 px-4 py-3">
+ <footer class="bg-gray-800 fixed bottom-0 left-0 w-full z-50 p-3 flex items-center space-x-2  px-4 py-3">
 
     <!-- Tombol ➕ dengan menu -->
     <div class="relative">
@@ -81,6 +81,15 @@
     <!-- Tombol kirim -->
     <button class="text-white text-xl" onclick="kirimPesan()">✔️</button>
   </footer>
+
+  <!-- ✅ MODAL RIWAYAT CHAT -->
+  <div id="riwayatModal" class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 hidden">
+    <div class="bg-gray-800 w-[90%] max-w-md p-6 rounded-lg text-white relative">
+      <button onclick="tutupRiwayat()" class="absolute top-2 right-3 text-xl text-gray-400 hover:text-red-400">✖</button>
+      <h2 class="text-lg font-bold mb-4">📊 Riwayat Chat</h2>
+      <div id="isiRiwayat" class="space-y-2 max-h-[60vh] overflow-y-auto text-sm"></div>
+    </div>
+  </div>
 
   <script>
     let namaUser = "";
@@ -154,7 +163,42 @@
       const teks = pesan.toLowerCase();
       let balasan = "";
 
-      if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
+      if (teks.includes("prediksi") && teks.includes("vs")) {
+  getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
+  input.value = '';
+  return;
+}
+
+// ✅ 2. Pertandingan semua liga hari ini
+if (["pertandingan bola malam ini", "pertandingan bola hari ini", "bola malam ini", "pertandingan hari ini"].some(k => teks.includes(k))) {
+  getJadwalSemuaLigaHariIni().then(res => tampilkanBalasan(res));
+  input.value = '';
+  return;
+}
+
+// ✅ 3. Jadwal liga tertentu (liga inggris, la liga, dll)
+if (teks.includes("liga")) {
+  getJadwalLigaHariIni(teks).then(res => tampilkanBalasan(res));
+  input.value = '';
+  return;
+}
+
+else if (teks.includes("peluang menang") && teks.includes("vs")) {
+  getPeluangMenang(teks).then(res => tampilkanBalasan(res));
+  input.value = '';
+  return;
+}
+
+
+const sapaanKeywords = [
+  "halo", "hai", "hi", "hay", "hy", "hallo", "p",
+  "bro", "gan", "bos",
+  "assalamualaikum",
+  "selamat pagi", "selamat siang", "selamat sore", "selamat malam",
+  "misi", "permisi", "punten"
+];
+
+if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku")) {
         const namaMatch = teks.match(/(nama saya|saya|aku)\s+([a-zA-Z]+)/);
         if (namaMatch && namaMatch[2]) {
           namaUser = namaMatch[2].charAt(0).toUpperCase() + namaMatch[2].slice(1);
@@ -162,30 +206,292 @@
         } else {
           balasan = "Boleh tahu siapa nama kamu, bro?";
         }
-      } else if (["halo", "hai", "assalamualaikum", "pagi", "malam", "sore"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Halo ${namaUser}! Siap bahas bola? ⚽` : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
-      } else if (["siapa kamu", "nama kamu", "kamu siapa"].some(k => teks.includes(k))) {
-        balasan = "Saya BotPrediksi ⚽, siap bantu kamu soal bola 24 jam!";
-      } else if (["terima kasih", "makasih"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽` : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
-      } else if (["apa kabar", "gimana kabar", "sehat"].some(k => teks.includes(k))) {
-        balasan = namaUser ? `Saya baik ${namaUser}, kamu gimana? Siap nonton bola? ⚽` : "Saya baik-baik saja bro! Siap bantu prediksi bola kapan pun!";
-      } else if (["bantuan", "help", "gimana caranya", "cara pakai"].some(k => teks.includes(k))) {
-        balasan = "Tulis aja pertanyaanmu tentang bola, misalnya 'Prediksi Madrid vs Barca' ⚽";
-      } else if (["goblok", "bego", "tolol", "anjing"].some(k => teks.includes(k))) {
-        balasan = "Waduh bro, jangan emosi 😅 kita seru-seruan aja bahas bola ⚽";
-      } else if (["pertandingan bola malam ini", "pertandingan bola hari ini", "bola malam ini"].some(k => teks.includes(k))) {
-        getJadwalSemuaLigaHariIni().then(res => tampilkanBalasan(res));
-        input.value = '';
-        return;
-      } else if (teks.includes("liga")) {
-        getJadwalLigaHariIni(teks).then(res => tampilkanBalasan(res));
-        input.value = '';
-        return;
-      } else if (teks.includes("prediksi") && teks.includes("vs")) {
-        getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
-        input.value = '';
-        return;
+
+ } else if ([
+  "apa kabar", "gimana kabar", "gmn kabar", "kabar kamu", "kabar lu", "kabarnya",
+  "lagi apa", "lagi ngapain", "sedang apa", "ngapain bro", "ngapain kamu",
+  "gimana", "gmn", "sehat", "sehat gak", "sehat ga", "sehat kah", "baik kah",
+  "baik nggak", "baik ga", "baik gak", "kabar lo", "kbr lu", "kbr kamu",
+  "kabarmu", "keadaan kamu", "kondisi kamu", "keadaan bot", "bot sehat?",
+  "lagi sibuk ya", "sibuk ya", "capek gak", "bot cape?", "cape ya", "cape bro", 
+  "lagi santai?", "santai aja", "santai bro?", "santai dong", "kamu sibuk?", 
+  "kamu lagi apa", "kamu sibuk ga", "bot lagi ngapain"
+].some(k => teks.includes(k))) {
+
+  if (
+    teks.includes("lagi apa") || teks.includes("lagi ngapain") || 
+    teks.includes("sedang apa") || teks.includes("ngapain bro") || 
+    teks.includes("ngapain kamu") || teks.includes("bot lagi ngapain")
+  ) {
+    balasan = namaUser
+      ? `Lagi nunggu kamu nih ${namaUser}, biar kita bahas bola bareng ⚽`
+      : "Lagi nunggu pertanyaan bola dari kamu bro! Yuk tanya aja ⚽";
+  } else if (
+    teks.includes("sehat") || teks.includes("sehat gak") || teks.includes("sehat ga") ||
+    teks.includes("sehat kah") || teks.includes("bot sehat") || teks.includes("baik kah")
+  ) {
+    balasan = namaUser
+      ? `Alhamdulillah sehat ${namaUser}, semoga kamu juga selalu sehat dan semangat ⚽`
+      : "Saya sehat bro, semoga kamu juga sehat selalu ya ⚽";
+  } else if (
+    teks.includes("sibuk") || teks.includes("lagi sibuk") || teks.includes("kamu sibuk")
+  ) {
+    balasan = namaUser
+      ? `Lagi gak sibuk kok ${namaUser}, aku selalu standby buat bantu kamu soal bola ⚽`
+      : "Gak sibuk bro, kapan pun kamu butuh info bola, aku siap ⚽";
+  } else if (
+    teks.includes("cape") || teks.includes("capek")
+  ) {
+    balasan = namaUser
+      ? `Kalau capek, rehat sebentar ya ${namaUser}. Nonton bola bisa bantu refreshing ⚽`
+      : "Kalau capek, jangan lupa istirahat ya bro! Yuk bahas bola biar semangat ⚽";
+  } else if (
+    teks.includes("santai")
+  ) {
+    balasan = namaUser
+      ? `Santai aja ${namaUser}, ngobrolin bola emang paling asik ⚽`
+      : "Santai bro! Mau bahas bola apa hari ini? ⚽";
+  } else if (
+    teks.includes("kabar") || teks.includes("gimana") || teks.includes("gmn") || teks.includes("keadaan") || teks.includes("kondisi")
+  ) {
+    balasan = namaUser
+      ? `Saya baik ${namaUser}, kamu gimana? Siap bahas liga favorit? ⚽`
+      : "Saya baik kok bro! Yuk mulai bahas bola ⚽";
+  } else {
+    balasan = namaUser
+      ? `Saya oke ${namaUser}, siap bantu kamu soal bola kapan aja ⚽`
+      : "Saya oke bro! Silakan tanya jadwal, prediksi, atau data bola ⚽";
+  }
+} else if ([
+  "siapa kamu", "nama kamu", "kamu siapa", "lu siapa", "siapa ini", "kamu robot ya",
+  "kamu manusia", "kamu manusia?", "lu manusia?", "apakah kamu manusia",
+  "buat apa kamu", "fungsi kamu apa", "kenapa kamu dibuat", "tujuan kamu apa",
+  "siapa yg bikin kamu", "siapa yang bikin kamu", "siapa yang buat kamu", "sejak kapan kamu dibuat", "umur kamu", "berapa umur kamu",
+  "dari mana", "asal kamu", "lokasi kamu"
+].some(k => teks.includes(k))) {
+
+  if (["siapa kamu", "nama kamu", "kamu siapa", "lu siapa", "siapa ini"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Saya BotPrediksi ⚽, asisten bola kamu, ${namaUser}! Siap bantu kapan pun.`
+      : "Saya BotPrediksi ⚽, asisten bola kamu! Siap bantu 24 jam!";
+  } else if (["kamu robot", "robot ya"].some(k => teks.includes(k))) {
+    balasan = "Yap, saya bot pintar 🤖 khusus untuk bantu soal bola ⚽";
+  } else if (["kamu manusia", "apakah kamu manusia", "lu manusia"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Saya bukan manusia, ${namaUser}, saya bot ⚙️ yang dibuat untuk bantu kamu soal bola ⚽`
+      : "Saya bukan manusia, saya bot ⚙️ yang dibuat khusus untuk bantu kamu soal bola ⚽";
+  } else if (["kenapa kamu dibuat", "tujuan kamu apa", "buat apa kamu", "fungsi kamu apa"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Saya dibuat untuk bantu para penggemar bola seperti kamu, ${namaUser}, dalam hal prediksi, jadwal, dan data pertandingan ⚽`
+      : "Saya dibuat untuk bantu para penggemar bola dalam hal prediksi, jadwal, dan data pertandingan ⚽";
+  } else if (["umur kamu", "berapa umur kamu", "sejak kapan kamu dibuat"].some(k => teks.includes(k))) {
+    balasan = "Saya masih muda banget! Bot ini mulai aktif sejak tahun 2025 ⚽👶";
+  } else if (["siapa yg bikin kamu","siapa yang bikin kamu", "siapa yang buat kamu"].some(k => teks.includes(k))) {
+    balasan = "Saya dibuat oleh Marcel — penggemar bola & teknologi dari Indonesia 🇮🇩";
+  } else if (["dari mana", "asal kamu", "lokasi kamu"].some(k => teks.includes(k))) {
+    balasan = "Saya bot virtual buatan lokal, Indonesia punya! 🇮🇩";
+  } else {
+    balasan = namaUser
+      ? `Saya BotPrediksi, ${namaUser}, dibuat untuk bantu kamu soal bola kapan saja ⚽`
+      : "Saya BotPrediksi, dibuat untuk bantu kamu soal bola kapan saja ⚽";
+  }
+} else if (sapaanKeywords.some(k => teks.includes(k))) {
+  if (/\bp\b/.test(teks)) {
+    balasan = namaUser ? `P juga, ${namaUser}! Siap bahas bola? ⚽` : "P juga! Yuk bahas bola ⚽";
+  } else if (teks.includes("assalamualaikum")) {
+    balasan = namaUser
+      ? `Waalaikumsalam ${namaUser}, semoga sehat selalu! Siap bahas bola? ⚽`
+      : "Waalaikumsalam! Siap bantu soal bola bro ⚽";
+  } else if (teks.includes("selamat pagi")) {
+    balasan = namaUser
+      ? `Selamat pagi ${namaUser}! Semoga harimu penuh gol ⚽`
+      : "Pagi! Yuk bahas jadwal bola hari ini ⚽";
+  } else if (teks.includes("selamat siang")) {
+    balasan = namaUser
+      ? `Siang ${namaUser}, istirahat sambil lihat prediksi bola yuk ⚽`
+      : "Selamat siang! Ada jadwal seru hari ini ⚽";
+  } else if (teks.includes("selamat sore")) {
+    balasan = namaUser
+      ? `Sore ${namaUser}, siap nonton bola nanti malam? ⚽`
+      : "Selamat sore bro! Ada match menarik malam ini ⚽";
+  } else if (teks.includes("selamat malam")) {
+    balasan = namaUser
+      ? `Malam ${namaUser}, prediksi bola udah siap ⚽`
+      : "Selamat malam! Yuk bahas skor pertandingan ⚽";
+  } else if (["bro", "gan", "bos"].some(k => teks.includes(k))) {
+    if (teks.includes("bro")) {
+      balasan = namaUser
+        ? `Broo ${namaUser}, siap prediksi bola hari ini? ⚽`
+        : "Broo! Mau bahas bola tim mana nih? ⚽";
+    } else if (teks.includes("gan")) {
+      balasan = namaUser
+        ? `Halo gan ${namaUser}! Lagi cari prediksi tim favorit? ⚽`
+        : "Halo gan! Yuk tanya seputar bola ⚽";
+    } else if (teks.includes("bos")) {
+      balasan = namaUser
+        ? `Halo bos ${namaUser}! Siap bantu prediksi ⚽`
+        : "Halo bos! Mau bahas siapa nih, MU atau Madrid? ⚽";
+    }
+  } else if (teks.includes("misi")) {
+    balasan = namaUser
+      ? `Iya ${namaUser}, apakah ada yang ingin ditanyakan? ⚽`
+      : "Iya, apakah ada yang ingin ditanyakan? ⚽";
+  } else if (teks.includes("permisi")) {
+    balasan = namaUser
+      ? `Iya ${namaUser}, apakah bisa saya bantu? ⚽`
+      : "Iya, apakah bisa saya bantu? ⚽";
+  } else if (teks.includes("punten")) {
+    balasan = namaUser
+      ? `Iya ${namaUser}, silakan bertanya ⚽`
+      : "Iya, silakan bertanya ⚽";
+  } else {
+    balasan = namaUser
+      ? `Halo ${namaUser}! Siap bahas bola? ⚽`
+      : "Halo! Selamat datang di BotPrediksi ⚽. Silakan tanya tentang bola ya!";
+  }
+  
+} else if (["terima kasih", "makasih", "thanks", "makasih banyak", "trimakasih", "trims"].some(k => teks.includes(k))) {
+  if (teks.includes("makasih banyak") || teks.includes("terima kasih banyak")) {
+    balasan = namaUser
+      ? `Sama-sama ${namaUser}! Senang bisa bantu kamu soal bola ⚽`
+      : "Sama-sama! Senang bisa bantu kamu soal bola ⚽";
+  } else if (teks.includes("thanks")) {
+    balasan = namaUser
+      ? `You're welcome ${namaUser}! Tetap semangat dukung tim favorit kamu ⚽`
+      : "You're welcome! Semangat terus dukung tim kamu ⚽";
+  } else {
+    balasan = namaUser
+      ? `Sama-sama ${namaUser}! Jangan lupa tanya prediksi lagi ya ⚽`
+      : "Sama-sama bro! Kapan pun mau tanya bola, saya siap ⚽";
+  }
+
+  } else if ([
+  "keren", "hebat", "pintar", "pinter", "botnya keren", "lu pintar", "kamu pintar", 
+  "bot canggih", "lu keren", "kamu keren", "keren juga", "mantap bot", "gg bot", "bagus bot",
+  "mantul", "gokil", "top banget", "oke banget", "botnya mantap", "lu mantap", "the best",
+  "kerennn", "kerenn banget", "lu top", "botnya top", "lu jago", "kamu jago", "jago juga",
+  "kamu bagus", "lu bagus", "keren bot", "canggih juga", "botnya bagus", "bot jago", 
+  "lu smart", "kamu smart", "cerdas juga", "bagus banget"
+].some(k => teks.includes(k))) {
+  if (teks.includes("keren")) {
+    balasan = namaUser ? `Makasih ${namaUser}, kamu juga keren banget! ⚽🔥` : "Makasih! Kamu juga keren bro! ⚽";
+  } else if (teks.includes("hebat")) {
+    balasan = namaUser ? `Wah terima kasih ${namaUser}, semoga kamu juga makin hebat! ⚽💪` : "Makasih! Kamu juga hebat bro! ⚽";
+  }
+} else if (teks.includes("hebat")) {
+  balasan = namaUser ? `Wah terima kasih ${namaUser}, semoga kamu juga makin hebat! ⚽💪` : "Makasih! Kamu juga hebat bro! ⚽";
+
+} else if (teks.includes("pintar") || teks.includes("pinter")) {
+  balasan = namaUser ? `Haha makasih ${namaUser}, saya belajar dari kamu juga nih ⚽🧠` : "Makasih bro! Pintarnya bareng-bareng dong ⚽";
+
+} else if (teks.includes("botnya keren")) {
+  balasan = namaUser ? `Wah makasih banyak ${namaUser}, saya jadi semangat bantu kamu soal bola ⚽` : "Bot senang dengar itu! ⚽";
+
+} else if (teks.includes("lu pintar") || teks.includes("kamu pintar")) {
+  balasan = namaUser ? `Makasih ${namaUser}, kamu juga paham bola banget ⚽🧠` : "Thanks bro! Yuk ngobrolin bola terus ⚽";
+
+} else if (teks.includes("bot canggih") || teks.includes("canggih juga")) {
+  balasan = namaUser ? `Teknologi sekarang emang keren ya ${namaUser} 😎⚽` : "Bot makin canggih demi bantu kamu bro ⚙️⚽";
+
+} else if (teks.includes("lu keren") || teks.includes("kamu keren")) {
+  balasan = namaUser ? `Kamu juga keren ${namaUser}, kita tim hebat! ⚽🔥` : "Sama-sama keren bro! 🔥";
+
+} else if (teks.includes("keren juga")) {
+  balasan = namaUser ? `Haha makasih ${namaUser}, kita saling keren ya ⚽🙌` : "Makasih bro! Sama-sama keren dong ⚽";
+
+} else if (teks.includes("mantap bot") || teks.includes("mantap")) {
+  balasan = namaUser ? `Makasih ${namaUser}! Kamu juga mantap jiwa ⚽💪` : "Mantap! Yuk lanjut bahas bola bro ⚽";
+
+} else if (teks.includes("gg bot") || teks.includes("gg")) {
+  balasan = namaUser ? `GG juga kamu ${namaUser}! ⚽🔥` : "GG bro! Kita kompak soal bola ⚽";
+
+} else if (teks.includes("bagus bot") || teks.includes("bagus banget") || teks.includes("botnya bagus")) {
+  balasan = namaUser ? `Terima kasih ${namaUser}, saya berusaha bantu sebaik mungkin ⚽` : "Makasih! Senang bisa bantu ⚽";
+
+} else if (teks.includes("mantul")) {
+  balasan = namaUser ? `Mantul banget ${namaUser}! Yuk bahas tim kesayangan ⚽🔥` : "Mantul bro! Yuk lanjut ⚽";
+
+} else if (teks.includes("gokil")) {
+  balasan = namaUser ? `Haha gokil juga kamu ${namaUser}! ⚽🤣` : "Gokil bro! Prediksi bola hari ini siap ⚽";
+
+} else if (teks.includes("top banget") || teks.includes("top")) {
+  balasan = namaUser ? `Top juga kamu ${namaUser}! Ayo bahas match favorit ⚽` : "Top markotop bro! ⚽";
+
+} else if (teks.includes("oke banget")) {
+  balasan = namaUser ? `Thanks ${namaUser}, kamu juga oke banget! ⚽✨` : "Oke banget bro! Yuk lanjut ⚽";
+
+} else if (teks.includes("botnya mantap")) {
+  balasan = namaUser ? `Bot makin semangat dibilang gitu, makasih ${namaUser}! ⚽🔥` : "Terima kasih! Bot makin semangat ⚽";
+
+} else if (teks.includes("lu mantap")) {
+  balasan = namaUser ? `Kamu juga mantap ${namaUser}! ⚽🔥` : "Sama-sama mantap bro! ⚽";
+
+} else if (teks.includes("the best")) {
+  balasan = namaUser ? `Kamu juga the best ${namaUser}! ⚽💯` : "Makasih bro! Kamu juga the best! ⚽";
+
+} else if (teks.includes("kerennn") || teks.includes("kerenn banget")) {
+  balasan = namaUser ? `Kerennya sampe triple N nih, makasih ${namaUser}! ⚽🔥` : "Wuihh makasih! ⚽🔥";
+
+} else if (teks.includes("lu top") || teks.includes("botnya top")) {
+  balasan = namaUser ? `Top juga kamu ${namaUser}! ⚽🙌` : "Sama-sama top bro! ⚽";
+
+} else if (teks.includes("lu jago") || teks.includes("kamu jago") || teks.includes("jago juga") || teks.includes("bot jago")) {
+  balasan = namaUser ? `Jago bareng kamu nih ${namaUser}! ⚽🔥` : "Jago berdua lebih asik! ⚽🔥";
+
+} else if (teks.includes("kamu bagus") || teks.includes("lu bagus")) {
+  balasan = namaUser ? `Thanks ${namaUser}, kamu juga hebat dalam ngobrolin bola! ⚽` : "Makasih bro! Yuk terus seru-seruan ⚽";
+
+} else if (teks.includes("keren bot")) {
+  balasan = namaUser ? `Makasih ${namaUser}, senang bisa bantu kamu ⚽🔥` : "Wah makasih! Yuk terus tanya bola ⚽";
+
+} else if (teks.includes("lu smart") || teks.includes("kamu smart")) {
+  balasan = namaUser ? `Hehe, kamu juga smart ${namaUser}! Kita cocok jadi tim ⚽🧠` : "Thanks! Kamu juga jenius bola bro! ⚽";
+
+} else if ([
+  "bot error", "ngaco", "bohong kamu", "bohong lu", "bohong", 
+  "salah lu", "lu salah", "bot goblok", "goblok kamu", "bot bodoh", 
+  "bot bego", "bot jelek", "kamu aneh", "bot aneh", "gak jelas", 
+  "ga jelas", "gaje", "apaan sih", "ngawur", "halu", "anjing", "kontol", "memek"
+].some(k => teks.includes(k))) {
+
+  if (["bot error", "ngaco", "ngawur", "halu"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Hehe maaf ya ${namaUser}, kalau tadi ngaco 😅 Aku masih belajar jadi bot jago ⚽`
+      : "Waduh maaf ya, kalau tadi error 😅 Aku masih terus dilatih biar makin pintar ⚽";
+  
+  } else if (["bohong", "bohong kamu", "bohong lu", "lu salah", "salah lu"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Ehh masa sih bohong ${namaUser}? Kalau salah, kasih tahu ya biar aku bisa belajar ⚽`
+      : "Kalau aku salah, langsung koreksi aja ya bro 😅 Biar makin pintar ⚽";
+  
+  } else if (["bot goblok", "goblok kamu", "bot bodoh", "bot bego"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Aduh 😢 jangan gitu dong ${namaUser}... Aku janji gak goblok terus deh, serius ⚽`
+      : "😢 Waduh, sakit tapi tak berdarah bro... Tapi aku akan terus belajar ⚽";
+   
+   } else if ([
+    "anjing", "kontol", "memek"
+  ].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Yuk kita hindari kata kasar ya ${namaUser} 🙏 Biar ngobrol bolanya tetap seru dan sehat ⚽`
+      : "Santai bro, yuk jaga kata-kata biar ngobrol bola tetap asik ⚽✌️";   
+      
+  } else if (["bot jelek", "kamu aneh", "bot aneh"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Wkwk emang kadang aneh sih ${namaUser}, tapi aku tetap semangat bantu kamu soal bola ⚽`
+      : "Yahh... mungkin tampilannya belum sempurna 😅 tapi semangat bolanya full! ⚽";
+  
+  } else if (["gak jelas", "ga jelas", "gaje", "apaan sih"].some(k => teks.includes(k))) {
+    balasan = namaUser
+      ? `Maaf ya ${namaUser} kalau belum jelas 😅 Coba tanya lagi dengan lebih spesifik ⚽`
+      : "Kalau belum jelas, tanya ulang ya bro! Aku siap jawab ⚽";
+  
+  } else {
+    balasan = namaUser
+      ? `Maafin aku ya ${namaUser}, aku nggak sempurna... Tapi semangat bantu kamu bola tetap 100%! ⚽🔥`
+      : "Aku bukan bot sempurna, tapi semangat bantu kamu soal bola tetap full! ⚽";
+  }
+
       } else {
         balasan = namaUser ? `Maaf ${namaUser}, saya hanya bisa jawab soal sepak bola ⚽` : "Maaf, saya hanya bisa jawab soal sepak bola ⚽";
       }
@@ -196,8 +502,9 @@
     }
 
     function hapusChat() {
-      document.getElementById('chatArea').innerHTML = '';
-    }
+  document.getElementById('chatArea').innerHTML = '';
+  localStorage.removeItem('chatHistory');
+}
 
     async function getPrediksiScoreDanOverUnder(pertanyaan) {
       try {
@@ -324,6 +631,110 @@
         return "Ups! Gagal ambil jadwal hari ini. Coba lagi nanti bro.";
       }
     }
-  </script>
+
+    async function getPeluangMenang(teks) {
+  try {
+    const match = teks.match(/(?:peluang menang)\s+([a-zA-Z\s]+)\s+vs\s+([a-zA-Z\s]+)/i);
+    if (!match || !match[1] || !match[2]) {
+      return "Format tidak dikenali. Coba: Peluang menang Madrid vs Barca";
+    }
+
+    const team1 = match[1].trim();
+    const team2 = match[2].trim();
+    const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
+
+    const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures/headtohead?h2h=${team1}-${team2}`, {
+      headers: {
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+      }
+    });
+
+    const data = await res.json();
+    const matches = data.response;
+    if (!matches || matches.length === 0) {
+      return `Belum ada data head-to-head ${team1} vs ${team2}.`;
+    }
+
+    let menang1 = 0, menang2 = 0, seri = 0;
+    matches.forEach(m => {
+      const g1 = m.goals.home ?? 0;
+      const g2 = m.goals.away ?? 0;
+
+      if (m.teams.home.name.toLowerCase().includes(team1.toLowerCase())) {
+        if (g1 > g2) menang1++;
+        else if (g1 < g2) menang2++;
+        else seri++;
+      } else {
+        if (g1 > g2) menang2++;
+        else if (g1 < g2) menang1++;
+        else seri++;
+      }
+    });
+
+    const total = menang1 + menang2 + seri;
+    const persen = x => ((x / total) * 100).toFixed(1);
+
+    return `📊 Peluang Menang ${team1} vs ${team2} (berdasarkan ${total} pertemuan):
+- ${team1}: ${persen(menang1)}%
+- Seri: ${persen(seri)}%
+- ${team2}: ${persen(menang2)}%`;
+  } catch (err) {
+    return "Gagal menghitung peluang menang. Coba lagi nanti bro.";
+  }
+}
+function tampilkanRiwayat() {
+      const modal = document.getElementById('riwayatModal');
+      const isi = document.getElementById('isiRiwayat');
+      const riwayat = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+
+      isi.innerHTML = riwayat.length === 0
+        ? "<p class='text-center text-gray-400'>Belum ada riwayat chat ⚽</p>"
+        : riwayat.map(item => {
+            const kelas = item.fromBot
+              ? 'bg-green-600 text-white text-right p-2 rounded-lg'
+              : 'bg-gray-700 text-white text-left p-2 rounded-lg';
+            return `<div class="${kelas}">${item.teks}</div>`;
+          }).join("");
+
+      modal.classList.remove('hidden');
+    }
+
+    function tutupRiwayat() {
+      document.getElementById('riwayatModal').classList.add('hidden');
+    }
+
+    const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+    chatHistory.forEach(item => {
+      const div = document.createElement('div');
+      div.className = item.fromBot
+        ? 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto'
+        : 'bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2';
+      div.textContent = item.teks;
+      document.getElementById('chatArea').appendChild(div);
+    });
+
+    function simpanRiwayat(teks, fromBot = false) {
+      const data = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+      data.push({ teks, fromBot });
+      localStorage.setItem('chatHistory', JSON.stringify(data));
+    }
+
+    const oldTampilkanBalasan = tampilkanBalasan;
+    tampilkanBalasan = function(teks) {
+      simpanRiwayat(teks, true);
+      oldTampilkanBalasan(teks);
+    }
+
+    const oldKirimPesan = kirimPesan;
+    kirimPesan = function() {
+      const input = document.getElementById('userInput');
+      const pesan = input.value.trim();
+      if (pesan === '') return;
+      simpanRiwayat(pesan, false);
+      oldKirimPesan();
+
+    }
+ </script>
 </body>
 </html>
