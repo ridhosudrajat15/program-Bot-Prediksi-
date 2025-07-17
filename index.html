@@ -15,26 +15,35 @@
     }
     #chatArea {
       scroll-behavior: smooth;
+
+    .history-item.active {
+  background-color: #4a5568; /* bg-gray-700 */
+}  
     }
   </style>
 </head>
 <body class="bg-gray-900 text-white">
 
 
-  <!-- ✅ SIDEBAR -->
-  <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 transform -translate-x-full transition-transform duration-300 z-50">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold">Menu</h2>
-      <button onclick="toggleSidebar()">✖</button>
-    </div>
-    <ul class="space-y-4">
-      <li><a href="#" class="block hover:text-green-400">📅 Jadwal Bola</a></li>
-      <li><a href="#" class="block hover:text-green-400">⚙️ Pengaturan</a></li>
-      <li><a href="#" onclick="hapusChat(); toggleSidebar();" class="block hover:text-red-400">🚪 Hapus Chat</a></li>
-      <li><a href="tentangkami.html" class="block hover:text-green-400">ℹ️ Tentang Kami</a></li>
-     <li><a href="panduanbot.html" class="block hover:text-green-400">📖 Panduan Bot</a></li>
-    </ul>
+  <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 transform -translate-x-full transition-transform duration-300 z-50 overflow-y-auto">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold">Menu</h2>
+    <button onclick="toggleSidebar()">✖</button>
   </div>
+  <button onclick="startNewChat()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mb-4">
+    ➕ Obrolan Baru
+  </button>
+  
+  <h3 class="text-lg font-semibold mb-2 mt-4 border-t border-gray-700 pt-4">Riwayat Obrolan</h3>
+  <ul id="history-list" class="space-y-2">
+    </ul>
+  
+  <h3 class="text-lg font-semibold mb-2 mt-4 border-t border-gray-700 pt-4">Lainnya</h3>
+  <ul id="menu-static" class="space-y-4">
+    <li><a href="tentangkami.html" class="block hover:text-green-400">ℹ️ Tentang Kami</a></li>
+    <li><a href="panduanbot.html" class="block hover:text-green-400">📖 Panduan Bot</a></li>
+  </ul>
+</div>
 
   <!-- ✅ OVERLAY -->
   <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleSidebar()"></div>
@@ -88,9 +97,128 @@
     <button class="text-white text-xl" onclick="kirimPesan()">✔️</button>
   </footer>
 
-
-
   <script>
+    let currentChatId = null;
+
+// Fungsi ini akan berjalan saat halaman selesai dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  const lastActiveId = localStorage.getItem('football_last_active_chat');
+  if (lastActiveId) {
+    loadChat(lastActiveId);
+  } else {
+    startNewChat(false);
+  }
+  renderHistorySidebar();
+});
+
+// Mengambil semua data riwayat dari localStorage
+function getChatHistory() {
+  return JSON.parse(localStorage.getItem('football_chat_history')) || {};
+}
+
+// Menyimpan object riwayat ke localStorage
+function saveChatHistory(history) {
+  localStorage.setItem('football_chat_history', JSON.stringify(history));
+}
+
+// Menampilkan daftar riwayat di sidebar
+function renderHistorySidebar() {
+  const historyList = document.getElementById('history-list');
+  historyList.innerHTML = '';
+  const history = getChatHistory();
+  const sortedKeys = Object.keys(history).sort((a, b) => b.replace('chat_', '') - a.replace('chat_', ''));
+
+  for (const chatId of sortedKeys) {
+    const item = history[chatId];
+    const li = document.createElement('li');
+    li.className = `history-item p-2 rounded-md cursor-pointer hover:bg-gray-700 flex justify-between items-center text-sm`;
+    if (chatId === currentChatId) {
+      li.classList.add('active');
+    }
+    
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = item.title.length > 20 ? item.title.substring(0, 20) + '...' : item.title;
+    titleSpan.className = 'flex-grow';
+    titleSpan.onclick = () => loadChat(chatId);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.className = 'ml-2 hover:text-red-400';
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteChat(chatId);
+    };
+
+    li.appendChild(titleSpan);
+    li.appendChild(deleteBtn);
+    historyList.appendChild(li);
+  }
+}
+
+// Menyimpan percakapan saat ini
+function saveCurrentChat() {
+  if (!currentChatId) return;
+  const chatArea = document.getElementById('chatArea');
+  const firstUserBubble = chatArea.querySelector('.bg-green-200');
+  const history = getChatHistory();
+  let title = firstUserBubble ? firstUserBubble.textContent.trim() : "Obrolan baru";
+
+  history[currentChatId] = {
+    title: title,
+    html: chatArea.innerHTML,
+    namaUser: namaUser
+  };
+  saveChatHistory(history);
+  renderHistorySidebar();
+}
+
+// Memuat percakapan lama dari riwayat
+function loadChat(chatId) {
+  const history = getChatHistory();
+  if (!history[chatId]) {
+    startNewChat();
+    return;
+  }
+  const chatData = history[chatId];
+  document.getElementById('chatArea').innerHTML = chatData.html;
+  currentChatId = chatId;
+  namaUser = chatData.namaUser || "";
+  localStorage.setItem('football_last_active_chat', chatId);
+  document.getElementById('welcomeMessage')?.remove();
+  toggleSidebar(true);
+  renderHistorySidebar();
+  scrollToBottom();
+}
+
+// Menghapus satu item riwayat
+function deleteChat(chatId) {
+  if (!confirm("Anda yakin ingin menghapus obrolan ini?")) return;
+  const history = getChatHistory();
+  delete history[chatId];
+  saveChatHistory(history);
+  if (currentChatId === chatId) {
+    localStorage.removeItem('football_last_active_chat');
+    startNewChat(false);
+  }
+  renderHistorySidebar();
+}
+
+// Memulai sesi obrolan baru
+function startNewChat(closeSidebar = true) {
+  currentChatId = null;
+  namaUser = "";
+  document.getElementById('chatArea').innerHTML = `
+    <div id="welcomeMessage" class="absolute inset-0 flex flex-col justify-center items-center text-center text-gray-400 px-4">
+      <h2 class="text-2xl font-bold mb-2">Selamat datang di Bot Prediksi Sepakbola ⚽</h2>
+      <p class="text-base">Tanyakan apa saja seputar pertandingan bola atau unggah foto tim favoritmu!</p>
+    </div>
+  `;
+  localStorage.removeItem('football_last_active_chat');
+  if (closeSidebar) {
+    toggleSidebar(true);
+  }
+  renderHistorySidebar();
+}
     let namaUser = "";
 
     function toggleSidebar() {
@@ -141,28 +269,38 @@
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    function tampilkanBalasan(teks) {
-      const botBubble = document.createElement('div');
-      botBubble.className = 'bg-white text-black p-3 rounded-lg w-fit max-w-[80%] mb-2';
-      botBubble.textContent = teks;
-      document.getElementById('chatArea').appendChild(botBubble);
-      scrollToBottom();
-    }
+   function tampilkanBalasan(teks) {
+  const botBubble = document.createElement('div');
+  botBubble.className = 'bg-white text-black p-3 rounded-lg w-fit max-w-[80%] mb-2';
+  botBubble.innerHTML = teks.replace(/\n/g, '<br>'); // Agar format baris baru terbaca
+  document.getElementById('chatArea').appendChild(botBubble);
+  scrollToBottom();
+  saveCurrentChat(); // Simpan chat setelah bot membalas
+}
 
-    async function kirimPesan() {
-      const input = document.getElementById('userInput');
-      const pesan = input.value.trim();
-      if (pesan === '') return;
-     document.getElementById('welcomeMessage')?.remove();
+   async function kirimPesan() {
+  const input = document.getElementById('userInput');
+  const pesan = input.value.trim();
+  if (pesan === '') return;
 
-      const userBubble = document.createElement('div');
-      userBubble.className = 'bg-green-200 text-black p-3 rounded-lg w-fit max-w-[80%] ml-auto ';
-      userBubble.textContent = pesan;
-      document.getElementById('chatArea').appendChild(userBubble);
+  if (!currentChatId) {
+    currentChatId = 'chat_' + Date.now();
+    localStorage.setItem('football_last_active_chat', currentChatId);
+    renderHistorySidebar();
+  }
 
-      const teks = pesan.toLowerCase();
-      let balasan = "";
+  document.getElementById('welcomeMessage')?.remove();
 
+  const userBubble = document.createElement('div');
+  userBubble.className = 'bg-green-200 text-black p-3 rounded-lg w-fit max-w-[80%] ml-auto';
+  userBubble.textContent = pesan;
+  document.getElementById('chatArea').appendChild(userBubble);
+
+  const teks = pesan.toLowerCase();
+  input.value = '';
+  input.focus();
+  scrollToBottom();
+  saveCurrentChat();
       if (teks.includes("prediksi") && teks.includes("vs")) {
   getPrediksiScoreDanOverUnder(teks).then(res => tampilkanBalasan(res));
   input.value = '';
@@ -503,7 +641,7 @@ if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku"))
     }
 
     function hapusChat() {
-  document.getElementById('chatArea').innerHTML = '
+  document.getElementById('chatArea').innerHTML = '';
   document.getElementById('chatArea').insertAdjacentHTML('afterbegin', `
   <div id="welcomeMessage" class="absolute inset-0 flex flex-col justify-center items-center text-center text-gray-400 px-4">
     <h2 class="text-2xl font-bold mb-2">Selamat datang di Bot Prediksi Sepakbola ⚽</h2>
@@ -689,53 +827,7 @@ if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku"))
     return "Gagal menghitung peluang menang. Coba lagi nanti bro.";
   }
 }
-function tampilkanRiwayat() {
-      const modal = document.getElementById('riwayatModal');
-      const isi = document.getElementById('isiRiwayat');
-      const riwayat = JSON.parse(localStorage.getItem('chatHistory') || '[]');
 
-      isi.innerHTML = riwayat.length === 0
-        ? "<p class='text-center text-gray-400'>Belum ada riwayat chat ⚽</p>"
-        : riwayat.map(item => {
-            const kelas = item.fromBot
-              ? 'bg-green-600 text-white text-right p-2 rounded-lg'
-              : 'bg-gray-700 text-white text-left p-2 rounded-lg';
-            return `<div class="${kelas}">${item.teks}</div>`;
-          }).join("");
-
-      modal.classList.remove('hidden');
-    }
-
-    function tutupRiwayat() {
-      document.getElementById('riwayatModal').classList.add('hidden');
-    }
-
-    const chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    chatHistory.forEach(item => {
-      const div = document.createElement('div');
-      div.className = item.fromBot
-        ? 'bg-green-600 p-3 rounded-lg w-fit max-w-[80%] ml-auto'
-        : 'bg-gray-800 p-3 rounded-lg w-fit max-w-[80%] mb-2';
-      div.textContent = item.teks;
-      document.getElementById('chatArea').appendChild(div);
-    });
-
-    
-
-    const oldTampilkanBalasan = tampilkanBalasan;
-    tampilkanBalasan = function(teks) {
-      simpanRiwayat(teks, true);
-      oldTampilkanBalasan(teks);
-    }
-
-    const oldKirimPesan = kirimPesan;
-    kirimPesan = function() {
-      const input = document.getElementById('userInput');
-      const pesan = input.value.trim();
-      if (pesan === '') return;
-      oldKirimPesan();
-
-    }
  </script>
 </body>
 </html>
