@@ -28,8 +28,6 @@
       <button onclick="toggleSidebar()">✖</button>
     </div>
     <ul class="space-y-4">
-      <li><a href="#" onclick="tampilkanRiwayat()" class="block hover:text-green-400">
-        📊 Riwayat Chat</a></li>
       <li><a href="#" class="block hover:text-green-400">📅 Jadwal Bola</a></li>
       <li><a href="#" class="block hover:text-green-400">⚙️ Pengaturan</a></li>
       <li><a href="#" onclick="hapusChat(); toggleSidebar();" class="block hover:text-red-400">🚪 Hapus Chat</a></li>
@@ -90,14 +88,7 @@
     <button class="text-white text-xl" onclick="kirimPesan()">✔️</button>
   </footer>
 
-  <!-- ✅ MODAL RIWAYAT CHAT -->
-  <div id="riwayatModal" class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 hidden">
-    <div class="bg-gray-800 w-[90%] max-w-md p-6 rounded-lg text-white relative">
-      <button onclick="tutupRiwayat()" class="absolute top-2 right-3 text-xl text-gray-400 hover:text-red-400">✖</button>
-      <h2 class="text-lg font-bold mb-4">📊 Riwayat Chat</h2>
-      <div id="isiRiwayat" class="space-y-2 max-h-[60vh] overflow-y-auto text-sm"></div>
-    </div>
-  </div>
+
 
   <script>
     let namaUser = "";
@@ -512,8 +503,7 @@ if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku"))
     }
 
     function hapusChat() {
-  document.getElementById('chatArea').innerHTML = '';
-  localStorage.removeItem('chatHistory');
+  document.getElementById('chatArea').innerHTML = '
   document.getElementById('chatArea').insertAdjacentHTML('afterbegin', `
   <div id="welcomeMessage" class="absolute inset-0 flex flex-col justify-center items-center text-center text-gray-400 px-4">
     <h2 class="text-2xl font-bold mb-2">Selamat datang di Bot Prediksi Sepakbola ⚽</h2>
@@ -730,11 +720,7 @@ function tampilkanRiwayat() {
       document.getElementById('chatArea').appendChild(div);
     });
 
-    function simpanRiwayat(teks, fromBot = false) {
-      const data = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-      data.push({ teks, fromBot });
-      localStorage.setItem('chatHistory', JSON.stringify(data));
-    }
+    
 
     const oldTampilkanBalasan = tampilkanBalasan;
     tampilkanBalasan = function(teks) {
@@ -746,8 +732,7 @@ function tampilkanRiwayat() {
     kirimPesan = function() {
       const input = document.getElementById('userInput');
       const pesan = input.value.trim();
-      if (pesan === '') return;
-      simpanRiwayat(pesan, false);
+      if (pesan === '') return
       oldKirimPesan();
 
     }
