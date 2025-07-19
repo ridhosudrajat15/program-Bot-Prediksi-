@@ -42,6 +42,7 @@
   <ul id="menu-static" class="space-y-4">
     <li><a href="tentangkami.html" class="block hover:text-green-400">ℹ️ Tentang Kami</a></li>
     <li><a href="panduanbot.html" class="block hover:text-green-400">📖 Panduan Bot</a></li>
+    <li><button onclick="openSettingsModal()" class="block w-full text-left hover:text-green-400">⚙️ Setelan & Bantuan</button></li>
   </ul>
 </div>
 
@@ -96,9 +97,67 @@
     <!-- Tombol kirim -->
     <button class="text-white text-xl" onclick="kirimPesan()">✔️</button>
   </footer>
+<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex justify-center items-center">
+  <div class="bg-gray-800 rounded-lg p-6 w-11/12 max-w-sm">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Setelan & Bantuan</h2>
+      <button onclick="closeSettingsModal()" class="text-2xl">&times;</button>
+    </div>
+
+    <div class="mb-4">
+      <h3 class="font-semibold mb-2">🎨 Tema Tampilan</h3>
+      <div class="flex space-x-2">
+        <button onclick="applyTheme('light')" class="flex-1 bg-gray-200 text-black rounded py-2">💡 Terang</button>
+        <button onclick="applyTheme('dark')" class="flex-1 bg-gray-700 rounded py-2">🌙 Gelap</button>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="font-semibold mb-2">📖 Butuh Bantuan?</h3>
+      <a href="panduanbot.html" class="block text-green-400 hover:underline">Baca Panduan Bot</a>
+    </div>
+  </div>
+</div>
 
   <script>
     let currentChatId = null;
+
+    // Letakkan kode ini di dalam tag <script> Anda
+
+// Fungsi untuk membuka & menutup modal
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal').classList.add('hidden');
+}
+
+// Fungsi untuk menerapkan tema
+function applyTheme(theme) {
+  const htmlEl = document.documentElement;
+  if (theme === 'light') {
+    htmlEl.classList.remove('dark');
+  } else {
+    htmlEl.classList.add('dark');
+  }
+  // Simpan pilihan tema agar diingat saat halaman dibuka lagi
+  localStorage.setItem('theme', theme);
+}
+
+// Cek tema saat halaman pertama kali dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  // ... (kode DOMContentLoaded Anda yang sudah ada)
+  
+  // ✅ TAMBAHKAN KODE INI DI DALAMNYA
+  const savedTheme = localStorage.getItem('theme') || 'dark'; // Default ke gelap
+  applyTheme(savedTheme);
+  
+  // Ini akan memodifikasi elemen dengan class dark:
+  // Contoh: <body class="bg-gray-900 dark:bg-gray-900 ...">
+  // Untuk tema terang, Anda bisa menambahkan class seperti:
+  // <body class="bg-white dark:bg-gray-900 ...">
+});
 
 // Fungsi ini akan berjalan saat halaman selesai dimuat
 document.addEventListener('DOMContentLoaded', () => {
