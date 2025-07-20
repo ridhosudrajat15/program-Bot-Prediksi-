@@ -804,6 +804,62 @@ if (teks.includes("nama saya") || teks.includes("saya") || teks.includes("aku"))
         return "Ups! Gagal ambil jadwal liga. Coba lagi nanti bro.";
       }
     }
+    async function getJadwalSeasonSpesifik(teks) {
+  try {
+    const apiKey = "ce13b7fee5bfbaa4476de793b906f0d2";
+    const ligaMapping = {
+      "liga inggris": 39, "premier league": 39,
+      "liga spanyol": 140, "la liga": 140,
+      "liga italia": 135, "serie a": 135,
+      "liga jerman": 78, "bundesliga": 78,
+      "liga prancis": 61, "ligue 1": 61
+    };
+
+    // Deteksi musim dari teks (misalnya: "musim 2023" → 2023)
+    const tahunMatch = teks.match(/20\d{2}/); // cari 4 digit tahun
+    const seasonTarget = tahunMatch ? parseInt(tahunMatch[0]) : null;
+
+    const ditemukan = Object.keys(ligaMapping).find(nama => teks.toLowerCase().includes(nama));
+    if (!ditemukan) return "Nama liga tidak dikenali bro. Contoh: Liga Inggris, La Liga, Serie A";
+
+    const idLiga = ligaMapping[ditemukan];
+    const tanggalHariIni = new Date().toISOString().split("T")[0];
+
+    const seasons = seasonTarget ? [seasonTarget] : [2022, 2023, 2024];
+    let semuaMatch = [];
+
+    for (const season of seasons) {
+      const res = await fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?date=${tanggalHariIni}&league=${idLiga}&season=${season}&timezone=Asia/Jakarta`, {
+        headers: {
+          'X-RapidAPI-Key': apiKey,
+          'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+        }
+      });
+      const data = await res.json();
+      if (data.response?.length > 0) {
+        semuaMatch = semuaMatch.concat(data.response);
+      }
+    }
+
+    if (semuaMatch.length === 0) {
+      const musimText = seasonTarget ? `musim ${seasonTarget}` : "musim yang dicoba";
+      return `Tidak ada pertandingan ${ditemukan} hari ini di ${musimText}, bro.`;
+    }
+
+    const jadwal = semuaMatch.map(m => {
+      const home = m.teams.home.name;
+      const away = m.teams.away.name;
+      const jam = new Date(m.fixture.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      return `- ${home} vs ${away} (${jam} WIB)`;
+    }).join("\n");
+
+    const musimText = seasonTarget ? `MUSIM ${seasonTarget}` : `beberapa musim`;
+    return `📅 Jadwal ${ditemukan.toUpperCase()} hari ini dari ${musimText}:\n${jadwal}`;
+  } catch (err) {
+    return "Ups! Gagal ambil jadwal. Cek koneksi atau coba lagi nanti bro.";
+  }
+    }
+    
 
     async function getJadwalSemuaLigaHariIni() {
       try {
